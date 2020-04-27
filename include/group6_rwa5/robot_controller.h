@@ -98,6 +98,13 @@ private:
 	std::vector<double> home_joint_pose_;
 	std::vector<double> quality_cam_joint_position_;
 	std::vector<double> trash_bin_joint_position_;
+	std::vector<double> home_joint_fd_arm1;
+	std::vector<double> home_joint_fr_arm1;
+	std::vector<double> home_joint_fl_arm1;
+
+	std::vector<double> home_joint_fd_arm2;
+	std::vector<double> home_joint_fr_arm2;
+	std::vector<double> home_joint_fl_arm2;
 
 	// moveit_msgs::CollisionObject collision_object;
 	// std::vector<moveit_msgs::CollisionObject> collision_objects;

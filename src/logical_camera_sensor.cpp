@@ -11,6 +11,7 @@ LogicalCameraSensor::LogicalCameraSensor(std::string topic, Environment* env, bo
   transform_(topic) {
 	async_spinner.start();
 	getCameraName(topic);
+
 	if (bincam_)
 	{
 		std::map<std::string, bool> * bincamboolmap_ = environment_->getBinCamBoolMap();
@@ -117,14 +118,15 @@ void LogicalCameraSensor::beltTriggerLogicalCameraCallback(const osrf_gear::Logi
 void LogicalCameraSensor::beltLogicalCameraCallback(std::string agv_id, const osrf_gear::LogicalCameraImage::ConstPtr& image_msg)
 {
 	auto sensor_pose = image_msg->pose;
-	transform_.setParentPose(sensor_pose);
+	// transform_.setParentPose(sensor_pose);
+
 	auto armpickuplocation = &(*environment_->getPickupLocations())[agv_id];
 
 	for (auto it = image_msg->models.begin(); it != image_msg->models.end(); ++it) {
 		if (armpickuplocation->count(it->type)) {
-			transform_.setChildPose(it->pose);
-			transform_.setWorldTransform();
-			geometry_msgs::Pose pose = transform_.getChildWorldPose();
+			// transform_.setChildPose(it->pose);
+			// transform_.setWorldTransform();
+			geometry_msgs::Pose pose = transform_.getChildPose(it->pose);
 			if (armpickuplocation->at(it->type) == nullptr) {
 				armpickuplocation->at(it->type) = new geometry_msgs::Pose(pose);
 			} else if (armpickuplocation->at(it->type)->position.y > it->pose.position.y) {
@@ -143,7 +145,7 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 		std::map<std::string, bool> * bincammap_ = environment_->getBinCamBoolMap();
 		std::map<std::string, bool> * traycammap_ = environment_->getTrayCamBoolMap();  // std::map<std::string, bool>*
 		auto sensor_pose = image_msg->pose;
-		transform_.setParentPose(sensor_pose);
+		// transform_.setParentPose(sensor_pose);
 
 		std::map<std::string, std::map<std::string, std::vector<geometry_msgs::Pose>>>* currentPartsPtr;
 		if ((*bincammap_).count(cam_name)) {
@@ -159,11 +161,12 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 		}
 
 		for (auto it = image_msg->models.begin(); it != image_msg->models.end(); ++it) {
-			transform_.setChildPose(it->pose);
-			transform_.setWorldTransform();
+			// transform_.setChildPose(it->pose);
+			// transform_.setWorldTransform();
 			auto partType = it->type;
-			geometry_msgs::Pose pose = transform_.getChildWorldPose();
-			if ((*currentPartsPtr)[cam_name].count(partType)) {
+			geometry_msgs::Pose pose = transform_.getChildPose(it->pose);
+			if ((*currentPartsPtr)[cam_name].count(partType))
+			{
 				(*currentPartsPtr)[cam_name][partType].push_back(pose);
 			}
 			else {

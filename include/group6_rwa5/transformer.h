@@ -59,28 +59,33 @@ class Transformer {
         Transformer();
         Transformer(const std::string &);
         ~Transformer();
-        std::string getCameraName();
-        void setWorldTransform();
-        void setParentPose(const geometry_msgs::Pose &sensor_pose);
-        void setChildPose(const geometry_msgs::Pose &child_pose);
-        void setPose(const geometry_msgs::Pose, geometry_msgs::TransformStamped &);
-        void setPose(const geometry_msgs::TransformStamped &, geometry_msgs::Pose &);
-        geometry_msgs::Pose getChildWorldPose();
-        void fromCameraName(std::string camera_name);
+        // std::string getCameraName();
+        // void setWorldTransform();
+        // void setParentPose(const geometry_msgs::Pose &sensor_pose);
+        // void setChildPose(const geometry_msgs::Pose &child_pose);
+        // void setPose(const geometry_msgs::Pose, geometry_msgs::TransformStamped &);
+        // void setPose(const geometry_msgs::TransformStamped &, geometry_msgs::Pose &);
+        // geometry_msgs::Pose getChildWorldPose();
+        // void fromCameraName(std::string camera_name);
 
-    private:
-        std::string topic_;
-        std::string parent_;
-        std::string child_;
+        geometry_msgs::Pose getChildPose(geometry_msgs::Pose);
+        geometry_msgs::Pose getChildPose(std::string , geometry_msgs::Pose );
+
+            private : std::string topic_;
+        // std::string parent_;
+        // std::string child_;
+        std::string frame_;
         tf2_ros::Buffer tf_buffer;
         tf2_ros::TransformListener tf_listener;
+        geometry_msgs::TransformStamped t_camera_world;
+        geometry_msgs::Pose pose_wrt_world;
 
-        geometry_msgs::TransformStamped transformStamped1;
-        geometry_msgs::TransformStamped transformStamped2;
-        geometry_msgs::TransformStamped transformStamped3;
+        // geometry_msgs::TransformStamped transformStamped1;
+        // geometry_msgs::TransformStamped transformStamped2;
+        // geometry_msgs::TransformStamped transformStamped3;
         
-        tf2_ros::TransformBroadcaster br_w_s;
-        tf2_ros::TransformBroadcaster br_s_c;
+        // tf2_ros::TransformBroadcaster br_w_s;
+        // tf2_ros::TransformBroadcaster br_s_c;
 
 };
 

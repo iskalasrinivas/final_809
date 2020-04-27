@@ -65,8 +65,7 @@ class AvailableBinPoses {
 
     geometry_msgs::Pose getAvailableBinPoseArm1(); // returns a pose available in one of the 3bins for arm2
     geometry_msgs::Pose getAvailableBinPoseArm2(); // returns a pose available in one of the 3bins for arm1
-    geometry_msgs::Pose getStaticBinPoseInWorld(std::string, geometry_msgs::Pose, geometry_msgs::Pose );
-
+    // geometry_msgs::Pose getStaticBinPoseInWorld(std::string, geometry_msgs::Pose, geometry_msgs::Pose );
 
   private:
 

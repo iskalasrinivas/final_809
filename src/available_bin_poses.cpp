@@ -47,15 +47,15 @@ AvailableBinPoses::AvailableBinPoses(std::map<std::string, std::map<std::string,
 AvailableBinPoses::~AvailableBinPoses()
 {}
 
-geometry_msgs::Pose AvailableBinPoses::getStaticBinPoseInWorld(std::string cam_name, geometry_msgs::Pose cam_pose, geometry_msgs::Pose child_pose)
-{
-    transform_.fromCameraName(cam_name);
-    transform_.setChildPose(child_pose);
-    transform_.setParentPose(cam_pose);
-    transform_.setWorldTransform();
-    geometry_msgs::Pose world_pose = transform_.getChildWorldPose();
-    return world_pose;
-}
+// geometry_msgs::Pose AvailableBinPoses::getStaticBinPoseInWorld(std::string cam_name, geometry_msgs::Pose cam_pose, geometry_msgs::Pose child_pose)
+// {
+//     transform_.fromCameraName(cam_name);
+//     transform_.setChildPose(child_pose);
+//     transform_.setParentPose(cam_pose);
+//     transform_.setWorldTransform();
+//     geometry_msgs::Pose world_pose = transform_.getChildWorldPose();
+//     return world_pose;
+// }
 
 bool AvailableBinPoses::isInProximity(geometry_msgs::Pose bin_pose, geometry_msgs::Pose static_pose)
 {
@@ -86,7 +86,8 @@ void AvailableBinPoses::addToAvailableBinPosesArm1(std::string cam_name, geometr
         {
             for (int i = 0; i < static_poses_.size(); ++i)
             {
-                auto static_world_pose = getStaticBinPoseInWorld(cam_name, cam_pose, static_poses_.at(i));
+                // auto static_world_pose = getStaticBinPoseInWorld(cam_name, cam_pose, static_poses_.at(i));
+                geometry_msgs::Pose static_world_pose = transform_.getChildPose(cam_name, static_poses_.at(i));
                 if (!isInProximity(*pose_it, static_world_pose))
                 {
                     if (available_ind_arm1_.count(cam_name) and available_poses_arm1_.count(cam_name))
@@ -136,7 +137,8 @@ void AvailableBinPoses::addToAvailableBinPosesArm2(std::string cam_name, geometr
             // for (int i = 0; i < static_poses_.size(); ++i)
             for (int i =0; i<static_poses_.size(); ++i)
             {
-                auto static_world_pose = getStaticBinPoseInWorld(cam_name, cam_pose, static_poses_.at(i));
+                // auto static_world_pose = getStaticBinPoseInWorld(cam_name, cam_pose, static_poses_.at(i));
+                geometry_msgs::Pose static_world_pose = transform_.getChildPose(cam_name, static_poses_.at(i));
                 if (!isInProximity(*pose_it, static_world_pose))
                 {
                     if (available_ind_arm2_.count(cam_name) and available_poses_arm2_.count(cam_name))

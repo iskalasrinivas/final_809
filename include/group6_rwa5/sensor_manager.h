@@ -25,7 +25,6 @@ private:
 	QualityCameraSensor qcamera_agv1;
 	QualityCameraSensor qcamera_agv2;
 
-
 public:
 	SensorManager(Environment *);
 	~SensorManager();

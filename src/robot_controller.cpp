@@ -75,11 +75,14 @@ RobotController::RobotController(std::string arm_id)
 			gripper_nh_.subscribe("/ariac/" + arm_id_ + "/gripper/state", 10, &RobotController::GripperCallback, this);
 	gripper_client_ =
 			robot_controller_nh_.serviceClient<osrf_gear::VacuumGripperControl>("/ariac/" + arm_id_ + "/gripper/control");
-	chooseArm();
 
 	// home_joint_pose_ =  {1.0, 3.14,  -2.0,  2.14, 4.6, -1.51, 0.0};
 
-	GoToJointState();  // @TODO @Srinivas find the joint state near the home joint pose faced down
+//----------------------------------arm1---------------------------------
+// face down for arm 1 home near joint pose
+    if(arm_id_ == "arm1"){
+    home_joint_fd_arm1 = {1.0, 3.14, -2.0, 2.14, -1.7, -1.59, 0.126};
+	GoToJointState(home_joint_fd_arm1);  // @TODO @Srinivas find the joint state near the home joint pose faced down
 	lookupTransform();
 
 	face_down_orientation_.x = robot_tf_transform_.getRotation().x();
@@ -87,19 +90,55 @@ RobotController::RobotController(std::string arm_id)
 	face_down_orientation_.z = robot_tf_transform_.getRotation().z();
 	face_down_orientation_.w = robot_tf_transform_.getRotation().w();
 
-	GoToJointState(); // @TODO @Srinivas find the joint state near the home joint pose faced left
+    home_joint_fl_arm1 = {1.0, 3.14, -2.0, 2.14, -1.7, -3.14, 0.126};
+	//GoToJointState(home_joint_fl_arm1); // @TODO @Srinivas find the joint state near the home joint pose faced left
 	lookupTransform();
 	face_left_orientation_.x = robot_tf_transform_.getRotation().x();
 	face_left_orientation_.y = robot_tf_transform_.getRotation().y();
 	face_left_orientation_.z = robot_tf_transform_.getRotation().z();
 	face_left_orientation_.w = robot_tf_transform_.getRotation().w();
 
-	GoToJointState(); // @TODO @Srinivas find the joint state near the home joint pose faced right
+    home_joint_fr_arm1 = {1.0, 3.14, -2.0, 2.14, -1.7, 0, 0.126};
+	//GoToJointState(home_joint_fr_arm1); // @TODO @Srinivas find the joint state near the home joint pose faced right
+	lookupTransform();
+	face_right_orientation_.x = robot_tf_transform_.getRotation().x();
+	face_right_orientation_.y = robot_tf_transform_.getRotation().y();
+	face_right_orientation_.z = robot_tf_transform_.getRotation().z();
+	face_right_orientation_.w = robot_tf_transform_.getRotation().w();
+	}
+	//-----------------------------arm2-------------------------------
+	else {
+
+	home_joint_fd_arm2 = {-0.9, 3.14, -2.0, 2.14, -1.7, -1.59, 0.126};
+	GoToJointState(home_joint_fd_arm2);  // @TODO @Srinivas find the joint state near the home joint pose faced down
+	lookupTransform();
+
+	face_down_orientation_.x = robot_tf_transform_.getRotation().x();
+	face_down_orientation_.y = robot_tf_transform_.getRotation().y();
+	face_down_orientation_.z = robot_tf_transform_.getRotation().z();
+	face_down_orientation_.w = robot_tf_transform_.getRotation().w();
+
+    home_joint_fl_arm2 = {-0.9, 3.14, -2.0, 2.14, -1.7, -3.14, 0.126};
+	//GoToJointState(home_joint_fl_arm2); // @TODO @Srinivas find the joint state near the home joint pose faced left
 	lookupTransform();
 	face_left_orientation_.x = robot_tf_transform_.getRotation().x();
 	face_left_orientation_.y = robot_tf_transform_.getRotation().y();
 	face_left_orientation_.z = robot_tf_transform_.getRotation().z();
 	face_left_orientation_.w = robot_tf_transform_.getRotation().w();
+
+    home_joint_fr_arm2 = {-0.9, 3.14, -2.0, 2.14, -1.7, 0, 0.126};
+	//GoToJointState(home_joint_fr_arm2); // @TODO @Srinivas find the joint state near the home joint pose faced right
+	lookupTransform();
+	face_right_orientation_.x = robot_tf_transform_.getRotation().x();
+	face_right_orientation_.y = robot_tf_transform_.getRotation().y();
+	face_right_orientation_.z = robot_tf_transform_.getRotation().z();
+	face_right_orientation_.w = robot_tf_transform_.getRotation().w();
+
+	}
+
+	chooseArm();
+
+	
 
 	SendRobotHome();
 	lookupTransform();
@@ -525,7 +564,9 @@ void RobotController::pickPart(const geometry_msgs::Pose &part_pose) {
 
 	GoToBinStaticPosition();
 	ROS_INFO_STREAM("Going To BinStaticPosition");
+	
 	auto target_top_pose_1 = part_pose;
+	target_top_pose_1.orientation = face_down_orientation_;
 	target_top_pose_1.position.z += 0.2;
 	GoToTarget(target_top_pose_1);
 	ros::Duration(interval).sleep();

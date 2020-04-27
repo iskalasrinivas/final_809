@@ -183,9 +183,9 @@ void OrderPart::worldTransformation() {
     tf2::doTransform(tray_pose_, end_pose_, tS_w_b);
    }
    catch (tf2::TransformException &ex) {
-     ROS_WARN("exception while converting child frame pose to world frame");
-        ROS_WARN("%s",ex.what());
-           ros::Duration(0.01).sleep();
+      ROS_WARN("exception while converting child frame pose to world frame");
+      ROS_WARN("%s",ex.what());
+      ros::Duration(0.01).sleep();
    }
  ros::Duration(0.01).sleep();
  // ROS_INFO_STREAM("Order  tray frame : " << tray_pose_.position.x << "  " << tray_pose_.position.y << "  " <<tray_pose_.position.z);

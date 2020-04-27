@@ -65,7 +65,6 @@ private:
 	bool traycam_;
 	bool beltcam_;
 	bool triggercam_;
-
 public:
 	LogicalCameraSensor(std::string, Environment *, bool, bool, bool, bool); // belt, bin, tray, trigger
 	~LogicalCameraSensor();

@@ -345,7 +345,7 @@ void DynamicPlanner::dynamicPlanningforArm1()
     auto arm1_pq = (*(env_->getPriorityQueue()))["agv1"];
 	auto arm1_ = exe_.getArm1Object();
 	int previousShipmentId = arm1_pq.top()->getShipmentId();
-	ROS_WARN_STREAM("<<<<<In dynamicPlanningforArm1:2 >>>>>");
+	ROS_WARN_STREAM("<<<<<In dynamicPlanningforArm1:  2 >>>>>");
 	while (!arm1_pq.empty())
 	{
 		auto order_part = arm1_pq.top();

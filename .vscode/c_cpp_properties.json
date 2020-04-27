@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/saurav/catkin_ws/devel/include",
+                "/opt/ros/melodic/include",
+                "/home/saurav/catkin_ws/src/frontier_exploration_turtlebot/include",
+                "/home/saurav/catkin_ws/src/ariac-gazebo_ros_pkgs/gazebo_plugins/include",
+                "/home/saurav/catkin_ws/src/ariac-gazebo_ros_pkgs/gazebo_ros/include",
+                "/home/saurav/catkin_ws/src/ariac-gazebo_ros_pkgs/gazebo_ros_control/include",
+                "/home/saurav/catkin_ws/src/group6_rwa5/include/group6_rwa5",
+                "/home/saurav/catkin_ws/src/universal_robot/ur_kinematics/include",
+                "/usr/include"
+            ],
+            "name": "Linux",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}

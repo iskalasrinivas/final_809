@@ -1,0 +1,8 @@
+prefix=/home/saurav/catkin_ws/src/group6_rwa5/build/devel
+
+Name: group6_rwa5
+Description: Description of group6_rwa5
+Version: 0.0.0
+Cflags: -I/home/saurav/catkin_ws/src/group6_rwa5/include/group6_rwa5
+Libs: -L${prefix}/lib 
+Requires: geometry_msgs moveit_ros_planning_interface moveit_visual_tools osrf_gear roscpp sensor_msgs std_msgs std_srvs trajectory_msgs

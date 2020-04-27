@@ -248,9 +248,8 @@ void OrderManager::comparewithTrayandUpdate(std::string agv_id,
 		}
 	}
 
-	// trash parts - remove from tray and put to trash bin
-	for (auto traypart_map : r_tray_parts)
-	{
+	// trash parts - remove from tray and put to trash bin // TODO check this part
+	for (auto traypart_map : r_tray_parts) {
 		auto part_type = traypart_map.first;
 		auto part_vec = traypart_map.second;
 
@@ -283,6 +282,12 @@ void OrderManager::UpdateUnavailableParts()
 			}
 		}
 	}
+	for (auto pq_it = pq_map->begin(); pq_it != pq_map->end(); ++pq_it) {
+		ROS_INFO_STREAM("------------------");
+		pq_it->second.printPq();
+		ROS_INFO_STREAM("------------------");
+	}
+
 }
 
 void OrderManager::executeDynamicPlanner() {

@@ -59,7 +59,6 @@ RobotController::RobotController(std::string arm_id)
 , robot_move_group_(robot_controller_options)
 {
 	ROS_WARN_STREAM(">>>>> RobotController : " << arm_id_);
-	// ros::AsyncSpinner async_spinner(0);
 	async_spinner.start();
 
 	// setting parameters of planner
@@ -68,10 +67,10 @@ RobotController::RobotController(std::string arm_id)
 	robot_move_group_.setPlannerId("RRTConnectkConfigDefault");
 	robot_move_group_.setMaxVelocityScalingFactor(0.9);
 	robot_move_group_.setMaxAccelerationScalingFactor(0.9);
-	// robot_move_group_.setEndEffector("moveit_ee");
+
 	robot_move_group_.allowReplanning(true);
 	// collisionAvoidance();
-	offset_ = 0.025;
+
 	//--topic used to get the status of the gripper
 	gripper_subscriber_ =
 			gripper_nh_.subscribe("/ariac/" + arm_id_ + "/gripper/state", 10, &RobotController::GripperCallback, this);

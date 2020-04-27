@@ -91,7 +91,7 @@ void PriorityQueue::clear () {
 
 
 void PriorityQueue::printPq(){
-  for (auto it = priority_queue_.begin(); it != priority_queue_.end(); ++it) {
+  for (auto it = priority_queue_.rbegin(); it != priority_queue_.rend(); ++it) {
    ROS_INFO_STREAM ((*it)->getPartType() << " " << (*it)->getShipmentId());
   }
 }

@@ -72,107 +72,107 @@
 
 class RobotController {
 private:
- std::string arm_id_;
- double interval;
- ros::NodeHandle robot_controller_nh_;
- ros::AsyncSpinner async_spinner;
- moveit::planning_interface::MoveGroupInterface::Options robot_controller_options;
- ros::ServiceClient gripper_client_;
- ros::NodeHandle gripper_nh_;
- ros::Subscriber gripper_subscriber_;
+	std::string arm_id_;
+	double interval;
+	ros::NodeHandle robot_controller_nh_;
+	ros::AsyncSpinner async_spinner;
+	moveit::planning_interface::MoveGroupInterface::Options robot_controller_options;
+	ros::ServiceClient gripper_client_;
+	ros::NodeHandle gripper_nh_;
+	ros::Subscriber gripper_subscriber_;
 
- tf::TransformListener robot_tf_listener_;
- tf::StampedTransform robot_tf_transform_;
- tf::TransformListener agv_tf_listener_;
- tf::StampedTransform agv_tf_transform_;
-
-
- geometry_msgs::Pose target_pose_;
- geometry_msgs::Pose flip_intermediate_pose_;
- geometry_msgs::Pose home_cart_pose_;
- geometry_msgs::Pose static_bin_pose;
- geometry_msgs::Pose quality_static_pose;
- geometry_msgs::Pose current_pose_;
-
-    std::vector<double> belt_joint_pose_;
- std::vector<double> home_joint_pose_;
- std::vector<double> quality_cam_joint_position_;
- std::vector<double> trash_bin_joint_position_;
-
- // moveit_msgs::CollisionObject collision_object;
- // std::vector<moveit_msgs::CollisionObject> collision_objects;
+	tf::TransformListener robot_tf_listener_;
+	tf::StampedTransform robot_tf_transform_;
+	tf::TransformListener agv_tf_listener_;
+	tf::StampedTransform agv_tf_transform_;
 
 
- moveit::planning_interface::MoveGroupInterface robot_move_group_;
- moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
- moveit::planning_interface::MoveGroupInterface::Plan robot_planner_;
+	geometry_msgs::Pose target_pose_;
+	geometry_msgs::Pose flip_intermediate_pose_;
+	geometry_msgs::Pose home_cart_pose_;
+	geometry_msgs::Pose static_bin_pose;
+	geometry_msgs::Pose quality_static_pose;
+	geometry_msgs::Pose current_pose_;
 
- osrf_gear::VacuumGripperControl gripper_service_;
- osrf_gear::VacuumGripperState gripper_status_;
+	std::vector<double> belt_joint_pose_;
+	std::vector<double> home_joint_pose_;
+	std::vector<double> quality_cam_joint_position_;
+	std::vector<double> trash_bin_joint_position_;
 
- std::string object;
- bool plan_success_;
+	// moveit_msgs::CollisionObject collision_object;
+	// std::vector<moveit_msgs::CollisionObject> collision_objects;
 
 
- geometry_msgs::Quaternion face_down_orientation_;
-    geometry_msgs::Quaternion face_left_orientation_;
- geometry_msgs::Quaternion face_right_orientation_;
- geometry_msgs::Pose agv_position_;
+	moveit::planning_interface::MoveGroupInterface robot_move_group_;
+	moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+	moveit::planning_interface::MoveGroupInterface::Plan robot_planner_;
 
- // geometry_msgs::Pose end_pose_;
- double offset_;
- double roll_def_, pitch_def_, yaw_def_;
- tf::Quaternion q;
- int counter_;
- bool gripper_state_, drop_flag_;
- bool is_at_qualitySensor;
- bool is_faulty;
+	osrf_gear::VacuumGripperControl gripper_service_;
+	osrf_gear::VacuumGripperState gripper_status_;
+
+	std::string object;
+	bool plan_success_;
+
+
+	geometry_msgs::Quaternion face_down_orientation_;
+	geometry_msgs::Quaternion face_left_orientation_;
+	geometry_msgs::Quaternion face_right_orientation_;
+	geometry_msgs::Pose agv_position_;
+
+	// geometry_msgs::Pose end_pose_;
+	double offset_;
+	double roll_def_, pitch_def_, yaw_def_;
+	tf::Quaternion q;
+	int counter_;
+	bool gripper_state_, drop_flag_;
+	bool is_at_qualitySensor;
+	bool is_faulty;
 
 public:
- explicit RobotController(std::string); // TODO - CHEKC THIS
- ~RobotController();
- bool Planner();
- void chooseArm();
- void lookupTransform();
- void Execute();
- void moveToTarget(geometry_msgs::Pose);
- void GoToTarget(std::vector<geometry_msgs::Pose>);
- void GoToTarget(std::initializer_list<geometry_msgs::Pose>);
- void GoToTarget(const geometry_msgs::Pose&);
- void GoToAGV(const geometry_msgs::Pose&);
- void flipPart(OrderPart *order_);
+	explicit RobotController(std::string); // TODO - CHEKC THIS
+	~RobotController();
+	bool Planner();
+	void chooseArm();
+	void lookupTransform();
+	void Execute();
+	void moveToTarget(geometry_msgs::Pose);
+	void GoToTarget(std::vector<geometry_msgs::Pose>);
+	void GoToTarget(std::initializer_list<geometry_msgs::Pose>);
+	void GoToTarget(const geometry_msgs::Pose&);
+	void GoToAGV(const geometry_msgs::Pose&);
+	void flipPart(OrderPart *order_);
 
- void GripperToggle(const bool &);
- void GripperCallback(const osrf_gear::VacuumGripperState::ConstPtr&);
- void GripperStateCheck(geometry_msgs::Pose);
- bool isPartAttached();
- bool isAtQualitySensor();
- void setAtQualitySensor();
+	void GripperToggle(const bool &);
+	void GripperCallback(const osrf_gear::VacuumGripperState::ConstPtr&);
+	void GripperStateCheck(geometry_msgs::Pose);
+	bool isPartAttached();
+	bool isAtQualitySensor();
+	void setAtQualitySensor();
 
 
- void GoToPose(const std::vector<double> &);
- geometry_msgs::Pose getHomeCartPose();
- void GotoTarget(const geometry_msgs::Pose&);
+	void GoToJointState(const std::vector<double> &);
+	geometry_msgs::Pose getHomeCartPose();
+	void GotoTarget(const geometry_msgs::Pose&);
 
- void SendRobotHome();
- void dropInTrash();
- void GoToQualityCamera();
- void GoToBinStaticPosition();
- void GoToQualityCameraFromBin();
- void moveToTargetinPieces(geometry_msgs::Pose);
- void collisionAvoidance();
- geometry_msgs::Pose getCurrentPose();
+	void SendRobotHome();
+	void dropInTrash();
+	void GoToQualityCamera();
+	void GoToBinStaticPosition();
+	void GoToQualityCameraFromBin();
+	void moveToTargetinParabolicPath(geometry_msgs::Pose);
+	void collisionAvoidance();
+	geometry_msgs::Pose getCurrentPose();
 
- void pickPart(const geometry_msgs::Pose&);
- void pickFlipPart(const geometry_msgs::Pose &);
- void deliverPart(const geometry_msgs::Pose &);
- void dropInAGV();
- void pickPartFromBelt(geometry_msgs::Pose*);
- void GoToBeltHome();
- bool completeSinglePartOrder(OrderPart*);
+	void pickPart(const geometry_msgs::Pose&);
+	void pickFlipPart(const geometry_msgs::Pose &);
+	void deliverPart(const geometry_msgs::Pose &);
+	void dropInAGV();
+	void pickPartFromBelt(geometry_msgs::Pose*);
+	void GoToBeltHome();
+	bool completeSinglePartOrder(OrderPart*);
 
- // void deliverThePartinBin(OrderPart * oPart);
+	// void deliverThePartinBin(OrderPart * oPart);
 
- // bool isPartfaulty();
+	// bool isPartfaulty();
 };
 #endif // GROUP6_RWA4_ROBOT_CONTROLLER_H_

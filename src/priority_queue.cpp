@@ -91,9 +91,12 @@ void PriorityQueue::clear () {
 
 
 void PriorityQueue::printPq(){
+    sort();
+    ROS_INFO_STREAM("-----------------");
   for (auto it = priority_queue_.rbegin(); it != priority_queue_.rend(); ++it) {
    ROS_INFO_STREAM ((*it)->getPartType() << " " << (*it)->getShipmentId());
   }
+  ROS_INFO_STREAM("-----------------");
 }
 
 std::vector<OrderPart*>* PriorityQueue::getpq() {

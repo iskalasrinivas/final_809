@@ -98,13 +98,10 @@ private:
 	std::vector<double> home_joint_pose_;
 	std::vector<double> quality_cam_joint_position_;
 	std::vector<double> trash_bin_joint_position_;
-	std::vector<double> home_joint_fd_arm1;
-	std::vector<double> home_joint_fr_arm1;
-	std::vector<double> home_joint_fl_arm1;
 
-	std::vector<double> home_joint_fd_arm2;
-	std::vector<double> home_joint_fr_arm2;
-	std::vector<double> home_joint_fl_arm2;
+	std::vector<double> home_joint_fr_arm;
+	std::vector<double> home_joint_fl_arm;
+	std::vector<double> home_joint_ff_arm;
 
 	// moveit_msgs::CollisionObject collision_object;
 	// std::vector<moveit_msgs::CollisionObject> collision_objects;
@@ -124,6 +121,7 @@ private:
 	geometry_msgs::Quaternion face_down_orientation_;
 	geometry_msgs::Quaternion face_left_orientation_;
 	geometry_msgs::Quaternion face_right_orientation_;
+	geometry_msgs::Quaternion face_front_orientation_;
 	geometry_msgs::Pose agv_position_;
 
 	// geometry_msgs::Pose end_pose_;
@@ -140,6 +138,8 @@ public:
 	~RobotController();
 	bool Planner();
 	void chooseArm();
+	void initialSequence();
+	void postInitialisation();
 	void lookupTransform();
 	void Execute();
 	void moveToTarget(geometry_msgs::Pose);
@@ -165,7 +165,7 @@ public:
 	void dropInTrash();
 	void GoToQualityCamera();
 	void GoToBinStaticPosition();
-	void GoToQualityCameraFromBin();
+	// void GoToQualityCameraFromBin();
 	void moveToTargetinParabolicPath(geometry_msgs::Pose);
 	void collisionAvoidance();
 	geometry_msgs::Pose getCurrentPose();

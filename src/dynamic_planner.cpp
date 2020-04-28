@@ -347,10 +347,13 @@ void DynamicPlanner::dynamicPlanningforArm1()
 	int previousShipmentId = arm1_pq.top()->getShipmentId();
 	ROS_WARN_STREAM("<<<<<In dynamicPlanningforArm1:  2 >>>>>");
 	while (!arm1_pq.empty())
-	{
+	{	
+		arm1_pq.printPq();
 		auto order_part = arm1_pq.top();
+		
 		arm1_pq.pop();
 
+		
 		// check pick up location for part
 		int retVal = updatePickupLocation(order_part);
 
@@ -410,9 +413,11 @@ void DynamicPlanner::dynamicPlanningforArm2()
 
 	while (!arm2_pq.empty())
 	{
+		arm2_pq.printPq();
 		auto order_part = arm2_pq.top();
+		
 		arm2_pq.pop();
-
+		
 		bool delivered = false;
 
 		// check pick up location for part
@@ -501,7 +506,7 @@ int DynamicPlanner::updatePickupLocation(OrderPart* part)
 				// check if any part is reachable
 				if (part->getAgvId() == "agv1")
 				{
-					if (pose_it->position.y <= 0)
+					if (pose_it->position.y >= 0)
 					{
 						part->setCurrentPose(*pose_it);
 						return 0;
@@ -509,7 +514,7 @@ int DynamicPlanner::updatePickupLocation(OrderPart* part)
 				}
 				else
 				{
-					if (pose_it->position.y >= 0)
+					if (pose_it->position.y <= 0)
 					{
 						part->setCurrentPose(*pose_it);
 						return 0;

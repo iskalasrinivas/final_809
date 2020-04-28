@@ -55,12 +55,15 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <transformer.h>
 #include <robot_controller.h>
+#include <thread>
 
 
 class Executor
 {
 private:
-    ros::Publisher arm_1_joint_trajectory_publisher_;
+std::thread arm1_thread;
+ std::thread arm2_thread;
+ros::Publisher arm_1_joint_trajectory_publisher_;
  ros::Publisher arm_2_joint_trajectory_publisher_;
 
  sensor_msgs::JointState arm_1_current_joint_states_;

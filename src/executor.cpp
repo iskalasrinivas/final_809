@@ -53,6 +53,13 @@ Executor::Executor(Environment* env):  arm_1_has_been_zeroed_(false), arm_2_has_
  arm_1_joint_trajectory_publisher_ = executer_nh_.advertise<trajectory_msgs::JointTrajectory>( "/ariac/arm1/arm/command", 10);
 
  arm_2_joint_trajectory_publisher_ = executer_nh_.advertise<trajectory_msgs::JointTrajectory>("/ariac/arm2/arm/command", 10);
+
+arm1_thread = std::thread(&RobotController::initialSequence, &arm1_);
+arm2_thread = std::thread(&RobotController::initialSequence, &arm2_);
+
+arm1_thread.join();
+arm2_thread.join();
+
 }
 
 Executor::~Executor()

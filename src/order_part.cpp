@@ -108,7 +108,7 @@ geometry_msgs::Pose OrderPart::getMiddlePose() const {
  return middle_pose_;
 }
 
-bool OrderPart::getFlipPart() const {
+bool OrderPart::isFlipRequired() const {
  return flip_part;
 }
 

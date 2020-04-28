@@ -105,6 +105,8 @@ public:
 
  void p();
 
+ bool completeSinglePartOrder(RobotController*, OrderPart *);
+
  bool isShipmentofTrayChecked(std::string agv_id);
 
 

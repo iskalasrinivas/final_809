@@ -54,14 +54,11 @@ ros::NodeHandle quality_nh_;
 ros::AsyncSpinner async_spinner;
 ros::Subscriber quality_subscriber_;
 Environment * environment_;
-std::string cam_name;
-bool is_faulty;
+std::string agv_id;
 public:
- QualityCameraSensor(std::string, Environment *);
+ QualityCameraSensor(std::string,std::string, Environment *);
  ~QualityCameraSensor();
- std::string getCameraName(std::string);
- void qualityControlSensorCallback(const osrf_gear::LogicalCameraImage::ConstPtr &);
- bool isPartFaulty();
+ void qualityControlSensorCallback(const osrf_gear::LogicalCameraImage::ConstPtr &);;
 };
 
 #endif // GROUP6_RWA5_QUALITY_CAMERA_SENSOR_H_

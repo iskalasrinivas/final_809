@@ -342,7 +342,7 @@ void DynamicPlanner::dynamicPlanningforArm1()
 	// ie. when new order comes, we are clearing the priortiy queue. So we will have to wait till we re-populate it.
 	// planner does that. so wait!!
 	ROS_WARN_STREAM("<<<<<In dynamicPlanningforArm1: 1>>>>>");
-    auto arm1_pq = (*(env_->getPriorityQueue()))["agv1"];
+	auto arm1_pq = (*(env_->getPriorityQueue()))["agv1"];
 	auto arm1_ = exe_.getArm1Object();
 	int previousShipmentId = arm1_pq.top()->getShipmentId();
 	ROS_WARN_STREAM("<<<<<In dynamicPlanningforArm1:  2 >>>>>");
@@ -350,10 +350,10 @@ void DynamicPlanner::dynamicPlanningforArm1()
 	{	
 		arm1_pq.printPq();
 		auto order_part = arm1_pq.top();
-		
+
 		arm1_pq.pop();
 
-		
+
 		// check pick up location for part
 		int retVal = updatePickupLocation(order_part);
 
@@ -361,7 +361,7 @@ void DynamicPlanner::dynamicPlanningforArm1()
 
 		if (retVal == 0)
 		{  // pick up from bin
-			bool delivered = arm1_->completeSinglePartOrder(order_part);
+			bool delivered = completeSinglePartOrder(arm1_, order_part);
 		}
 		else if (retVal == 1)
 		{  // no action
@@ -379,7 +379,7 @@ void DynamicPlanner::dynamicPlanningforArm1()
 				auto arm1_pck_lctn = (*(env_->getPickupLocations()))["agv1"][order_part->getPartType()];
 
 				arm1_->pickPartFromBelt(arm1_pck_lctn);
-				bool delivered = arm1_->completeSinglePartOrder(order_part);
+				bool delivered = completeSinglePartOrder(arm1_,order_part);
 			}
 		}
 
@@ -415,9 +415,9 @@ void DynamicPlanner::dynamicPlanningforArm2()
 	{
 		arm2_pq.printPq();
 		auto order_part = arm2_pq.top();
-		
+
 		arm2_pq.pop();
-		
+
 		bool delivered = false;
 
 		// check pick up location for part
@@ -425,7 +425,7 @@ void DynamicPlanner::dynamicPlanningforArm2()
 
 		if (retVal == 0)
 		{ // pick up from bin
-			bool delivered = arm2_->completeSinglePartOrder(order_part);
+			bool delivered = completeSinglePartOrder(arm2_, order_part);
 		}
 		else if (retVal == 1)
 		{ // no action
@@ -443,7 +443,7 @@ void DynamicPlanner::dynamicPlanningforArm2()
 				auto arm2_pck_lctn = (*(env_->getPickupLocations()))["agv2"][order_part->getPartType()];
 
 				arm2_->pickPartFromBelt(arm2_pck_lctn);
-				bool delivered = arm2_->completeSinglePartOrder(order_part);
+				bool delivered = completeSinglePartOrder(arm2_, order_part);
 			}
 		}
 
@@ -557,4 +557,39 @@ int DynamicPlanner::updatePickupLocation(OrderPart* part)
 	}
 
 	return 3;
+}
+
+
+bool DynamicPlanner::completeSinglePartOrder(RobotController* arm, OrderPart *order) {
+	bool flag = false;
+	if(!arm->isPartAttached()){
+		auto curr_pose = order->getCurrentPose();
+		arm->pickPartFromBin(curr_pose);
+	}
+	if(order->isFlipRequired()) {
+		// Drop part in left face Orientation // TODO check this function
+		// Pick from right side // TODO check this function
+		// Change Orientation to Down Side // TODO check this function
+	}
+	arm->GoToQualityCamera(); // TODO Perfect This function
+	arm->dropInAGV(); // TODO Perfect This function
+
+	env_->setQualityCameraRequired(order->getAgvId(), true);
+
+	while(!env_->isQualityCameraCalled(order->getAgvId())) {
+		ros::Duration(0.02).sleep();
+	}
+	env_->setQualityCameraRequired(order->getAgvId(), false);
+	if (env_->isPartFaulty(order->getAgvId()))
+	{
+		arm->pickPartFromAGV(order->getEndPose());
+		arm->dropInTrash(); // TODO check this function
+		flag = false;
+	}
+	else
+	{
+		flag = true;
+	}
+	// logic to return bool upon failure or success
+	return flag;
 }

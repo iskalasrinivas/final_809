@@ -95,12 +95,16 @@ public:
   void resetTrayCamBoolmap();
   void resetQualityCamBoolmap();
 
-  void setSeeQualityCamera1(bool);
-  void setSeeQualityCamera2(bool);
-  bool seeQualityCamera(std::string);
+  void setQualityCameraRequired(std::string , bool );
+  void setQualityCameraRequiredForArm1(bool);
+  void setQualityCameraRequiredForArm2(bool);
+  bool isQualityCameraRequired(std::string);
 
+  bool isQualityCameraCalled(std::string);
   bool isQuality1Called();
   bool isQuality2Called();
+
+  bool isPartFaulty(std::string);
 
   void setConveyor1Trigger(const bool &);
   bool isConveyor1Triggered() const;

@@ -170,13 +170,15 @@ public:
 	void collisionAvoidance();
 	geometry_msgs::Pose getCurrentPose();
 
-	void pickPart(const geometry_msgs::Pose&);
-	void pickFlipPart(const geometry_msgs::Pose &);
-	void deliverPart(const geometry_msgs::Pose &);
-	void dropInAGV();
+	void pickPart(const geometry_msgs::Pose&, double);
+	void pickPartFromAGV(const geometry_msgs::Pose&);
+	void pickPartFromBin(const geometry_msgs::Pose&);
 	void pickPartFromBelt(geometry_msgs::Pose*);
+	void pickFlipPart(const geometry_msgs::Pose &);
+	void dropPart(const geometry_msgs::Pose &);
+	void dropInAGV();
+
 	void GoToBeltHome();
-	bool completeSinglePartOrder(OrderPart*);
 
 	// void deliverThePartinBin(OrderPart * oPart);
 

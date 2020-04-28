@@ -97,7 +97,7 @@ public:
  geometry_msgs::Pose getMiddlePose() const;
  geometry_msgs::Pose getCurrentPose() const;
  void worldTransformation();
- bool getFlipPart() const;
+ bool isFlipRequired() const;
  std::string getShipmentType() const;
  int getShipmentId() const;
  int getPriority();

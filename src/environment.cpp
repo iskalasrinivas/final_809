@@ -164,36 +164,52 @@ std::map<std::string, bool>* Environment::getQualityCamerasPartfaulty()
 
 bool Environment::isQualityCamera1Partfaulty()
 {
-	return is_faulty["quality_control_sensor_1"];
+	return is_faulty["agv1"];
 }
 bool Environment::isQualityCamera2Partfaulty()
 {
-	return is_faulty["quality_control_sensor_2"];
+	return is_faulty["agv2"];
 }
 
-void Environment::setSeeQualityCamera1(bool status)
+void Environment::setQualityCameraRequiredForArm1(bool status)
 {
-	quality_cam_bool_map_["quality_control_sensor_1"] = status;
+	quality_cam_bool_map_["agv1"] = status;
 }
 
-void Environment::setSeeQualityCamera2(bool status)
+void Environment::setQualityCameraRequiredForArm2(bool status)
 {
-	quality_cam_bool_map_["quality_control_sensor_2"] = status;
+	quality_cam_bool_map_["agv2"] = status;
 }
 
-bool Environment::seeQualityCamera(std::string cam_name)
+void Environment::setQualityCameraRequired(std::string agv_id, bool status)
 {
-	return quality_cam_bool_map_[cam_name];
+	quality_cam_bool_map_[agv_id] = status;
 }
+
+bool Environment::isQualityCameraRequired(std::string agv_id)
+{
+	return quality_cam_bool_map_[agv_id];
+}
+
+bool Environment::isPartFaulty(std::string agv_id) {
+	return is_faulty[agv_id];
+}
+
+
+bool Environment::isQualityCameraCalled(std::string agv_id)
+{
+	return all_qualityCamera_called[agv_id];
+}
+
 
 bool Environment::isQuality1Called()
 {
-	return all_qualityCamera_called["quality_control_sensor_1"];
+	return all_qualityCamera_called["agv1"];
 }
 
 bool Environment::isQuality2Called()
 {
-	return all_qualityCamera_called["quality_control_sensor_2"];
+	return all_qualityCamera_called["agv2"];
 }
 
 void Environment::setConveyor1Trigger(const bool& status)

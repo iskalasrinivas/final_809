@@ -74,7 +74,7 @@ void LogicalCameraSensor::logicalCameraCallback(const osrf_gear::LogicalCameraIm
 { 
 
 	if (beltcam_ == true) {
-		ros::Duration(0.5).sleep();
+		ros::Duration(0.01).sleep();
 		if(cam_name == "logical_camera_9") {
 			beltLogicalCameraCallback("agv1", image_msg);
 		} else if(cam_name == "logical_camera_11") {
@@ -82,7 +82,7 @@ void LogicalCameraSensor::logicalCameraCallback(const osrf_gear::LogicalCameraIm
 		}
 	}
 	if (triggercam_ == true) {
-		ros::Duration(0.5).sleep();
+		ros::Duration(1.0).sleep();
 		beltTriggerLogicalCameraCallback(image_msg);
 	}
 	if(bincam_ == true or traycam_ == true){
@@ -106,6 +106,7 @@ void LogicalCameraSensor::beltTriggerLogicalCameraCallback(const osrf_gear::Logi
 					if((*part_it)->getPartType() == it->type) {
 						(*part_it)->setHighestPriority();
 						(*pickuplocations)[(*part_it)->getAgvId()][(*part_it)->getPartType()] = nullptr;
+						ROS_WARN_STREAM("Created => " << (*part_it)->getAgvId());
 						should_break = true;
 					}
 					if(should_break) { break; }
@@ -125,17 +126,26 @@ void LogicalCameraSensor::beltLogicalCameraCallback(std::string agv_id, const os
 	auto sensor_pose = image_msg->pose;
 	// transform_.setParentPose(sensor_pose);
 
-	auto armpickuplocation = &(*environment_->getPickupLocations())[agv_id];
-
+	std::map<std::string, geometry_msgs::Pose*>* armpickuplocation = &((*environment_->getPickupLocations())[agv_id]);
+	ROS_WARN_STREAM("STUCK0");
+//	ROS_WARN_STREAM("Size of belt array : " << image_msg->models.size());
 	for (auto it = image_msg->models.begin(); it != image_msg->models.end(); ++it) {
+		ROS_WARN_STREAM("STUCK12134");
 		if (armpickuplocation->count(it->type)) {
+			ROS_WARN_STREAM("STUCK1");
 			// transform_.setChildPose(it->pose);
 			// transform_.setWorldTransform();
 			geometry_msgs::Pose pose = transform_.getChildPose(it->pose);
 			if (armpickuplocation->at(it->type) == nullptr) {
-				armpickuplocation->at(it->type) = new geometry_msgs::Pose(pose);
-			} else if (armpickuplocation->at(it->type)->position.y > it->pose.position.y) {
+				ROS_WARN_STREAM("STUCK2");
+				armpickuplocation->at(it->type) = new geometry_msgs::Pose();
 				*(armpickuplocation->at(it->type)) = pose;
+				ROS_WARN_STREAM("STUCK22");
+				ROS_WARN_STREAM("Value of pose assigned is new Pose()");
+			} else if (armpickuplocation->at(it->type)->position.y > it->pose.position.y) {
+				ROS_WARN_STREAM("STUCK3");
+				*(armpickuplocation->at(it->type)) = pose;
+				ROS_WARN_STREAM("Value of pose assigned is =>" << pose);
 			}
 		}
 	}

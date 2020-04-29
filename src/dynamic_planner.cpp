@@ -65,10 +65,10 @@ void DynamicPlanner::dynamicPlannerCallBack(const std_msgs::Bool::ConstPtr& msg)
 	if (msg->data)
 	{
 		arm1_thread = std::thread(&DynamicPlanner::dynamicPlanningforArm1, this);
-		arm2_thread = std::thread(&DynamicPlanner::dynamicPlanningforArm2, this);
+//		arm2_thread = std::thread(&DynamicPlanner::dynamicPlanningforArm2, this);
 
 		arm1_thread.join();
-		arm2_thread.join();
+//		arm2_thread.join();
 	}
 }
 
@@ -183,10 +183,13 @@ void DynamicPlanner::dynamicPlanningforArm1()
 		else if (retVal == 3)
 		{  // action for belt
 			arm1_->GoToBeltHome();
+			ROS_WARN_STREAM("Went to Belt home");
+			ROS_WARN_STREAM("Part type is " << order_part->getPartType());
 			// TODO set the sequence of action here it self using pointer since the location is updating continuously
 			if ((*(env_->getPickupLocations())).count("agv1") and (*(env_->getPickupLocations()))["agv1"].count(order_part->getPartType())) {
+				ROS_WARN_STREAM("This part exists in get pickup locations()");
 				auto arm1_pck_lctn = (*(env_->getPickupLocations()))["agv1"][order_part->getPartType()];
-
+				ROS_WARN_STREAM("Value of pose is in DP =>" << arm1_pck_lctn);
 				arm1_->pickPartFromBelt(arm1_pck_lctn);
 				delivered = completeSinglePartOrder(arm1_,order_part);
 //				delivered =true;

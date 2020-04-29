@@ -504,6 +504,11 @@ void RobotController::collisionAvoidance()
 
 void RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
 {
+	while(part_pose == nullptr) {
+//		ROS_WARN_STREAM("Waiting for part come under belt camera for pickup...");
+		ros::Duration(0.001).sleep();
+	}
+	ROS_WARN_STREAM("Value of pose is in ACTION =>" << *part_pose);
 	// TODO passing current pose as making a local copy of the part pose
 	double belt_speed = 0.05; // Trial error
 	double belt_height = 0.90;

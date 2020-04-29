@@ -129,7 +129,7 @@ void OrderManager::setArmForAnyParts()
 	ros::Duration(0.1).sleep();
 	std::map<std::string, PriorityQueue*>* pq = environment->getPriorityQueue();
 	PriorityQueue* pq_agv1 = (*pq)["agv1"];
-	PriorityQueue* pq_agv2 = (*pq)["agv1"];
+	PriorityQueue* pq_agv2 = (*pq)["agv2"];
 
 	std::vector<std::vector <OrderPart*>> * shipments_ANY = environment->getShipmentsOfAnyTagId();
 

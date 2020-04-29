@@ -146,6 +146,9 @@ void DynamicPlanner::dynamicPlanningforArm1()
 	// ie. when new order comes, we are clearing the priortiy queue. So we will have to wait till we re-populate it.
 	// planner does that. so wait!!
 
+	if(!env_->getPriorityQueue()->count("agv1")) {
+		return;
+	}
 	auto arm1_pq = (*(env_->getPriorityQueue()))["agv1"];
 	auto arm1_ = exe_.getArm1Object();
 	int previousShipmentId = arm1_pq->top()->getShipmentId();
@@ -185,30 +188,30 @@ void DynamicPlanner::dynamicPlanningforArm1()
 		{  // action for belt
 			arm1_->GoToBeltHome();
 			ROS_WARN_STREAM("Went to Belt home");
-//			ROS_WARN_STREAM("Part type is " << order_part->getPartType());
+			//			ROS_WARN_STREAM("Part type is " << order_part->getPartType());
 			// TODO set the sequence of action here it self using pointer since the location is updating continuously
 			//			while ((*(env_->getPickupLocations())).count("agv1") and (*(env_->getPickupLocations()))["agv1"].count(order_part->getPartType())) {
 			//				ROS_WARN_STREAM("This part exists in get pickup locations()");
 
 			ROS_INFO_STREAM("DP ARM1 : Wait" << env_->getPickupLocations()->count("agv1") );
 			while(!env_->getPickupLocations()->count("agv1")) {
-//				ros::Duration(0.01).sleep();
-						}
+				//				ros::Duration(0.01).sleep();
+			}
 			ROS_INFO_STREAM("DP ARM1: Waiting" << env_->getPickupLocations()->at("agv1").count(order_part->getPartType()));
 			while(!env_->getPickupLocations()->at("agv1").count(order_part->getPartType())) {
-							//		ROS_WARN_STREAM("Waiting for part come under belt camera for pickup...");
-//				ros::Duration(0.01).sleep();
-						}
-//
-//			ROS_INFO_STREAM("DP : agv1" << " "<< order_part->getPartType());
+				//		ROS_WARN_STREAM("Waiting for part come under belt camera for pickup...");
+				//				ros::Duration(0.01).sleep();
+			}
+			ROS_INFO_STREAM("ARM1 : About to act");
+			//			ROS_INFO_STREAM("DP : agv1" << " "<< order_part->getPartType());
 			//				geometry_msgs::Pose* arm1_pck_lctn = (*(env_->getPickupLocations()))["agv1"][order_part->getPartType()];
 			while(env_->getPickupLocations()->at("agv1").at(order_part->getPartType()) == nullptr) {
 				//		ROS_WARN_STREAM("Waiting for part come under belt camera for pickup...");
-//				ros::Duration(0.01).sleep();
+				//				ros::Duration(0.01).sleep();
 			}
 			ROS_INFO_STREAM("DP ARM1: Action");
 			geometry_msgs::Pose* arm1_pck_lctn = env_->getPickupLocations()->at("agv1").at(order_part->getPartType());
-//			ROS_WARN_STREAM("DP : 222222222");
+			//			ROS_WARN_STREAM("DP : 222222222");
 			ROS_WARN_STREAM("Value of pose is in DP =>" << *arm1_pck_lctn);
 			arm1_->pickPartFromBelt(arm1_pck_lctn);
 			delivered = completeSinglePartOrder(arm1_,order_part);
@@ -233,6 +236,9 @@ void DynamicPlanner::dynamicPlanningforArm2()
 	// make sure this runs only after planner is completed
 	// ie. when new order comes, we are clearing the priortiy queue. So we will have to wait till we re-populate it.
 	// planner does that. so wait!!
+	if(!env_->getPriorityQueue()->count("agv2")) {
+		return;
+	}
 	auto arm2_pq = (*(env_->getPriorityQueue()))["agv2"];
 	auto arm2_ = exe_.getArm2Object();
 	int previousShipmentId = arm2_pq->top()->getShipmentId();
@@ -269,30 +275,30 @@ void DynamicPlanner::dynamicPlanningforArm2()
 		{ // action for belt
 			arm2_->GoToBeltHome();
 			ROS_WARN_STREAM("Went to Belt home");
-//			ROS_WARN_STREAM("Part type is " << order_part->getPartType());
+			//			ROS_WARN_STREAM("Part type is " << order_part->getPartType());
 			ROS_INFO_STREAM("DP ARM2 : Wait" << env_->getPickupLocations()->count("agv2") );
 			while(!env_->getPickupLocations()->count("agv2")) {
-	//				ros::Duration(0.01).sleep();
-						}
+				//				ros::Duration(0.01).sleep();
+			}
 			ROS_INFO_STREAM("DP ARM2: Waiting " << env_->getPickupLocations()->at("agv2").count(order_part->getPartType()));
 			while(!env_->getPickupLocations()->at("agv2").count(order_part->getPartType())) {
-							//		ROS_WARN_STREAM("Waiting for part come under belt camera for pickup...");
-	//				ros::Duration(0.01).sleep();
-						}
-
+				//		ROS_WARN_STREAM("Waiting for part come under belt camera for pickup...");
+				//				ros::Duration(0.01).sleep();
+			}
+			ROS_INFO_STREAM("ARM2 : About to act");
 			while(env_->getPickupLocations()->at("agv2").at(order_part->getPartType()) == nullptr) {
 				//		ROS_WARN_STREAM("Waiting for part come under belt camera for pickup...");
-//				ros::Duration(0.01).sleep();
+				//				ros::Duration(0.01).sleep();
 			}
 			ROS_INFO_STREAM("DP ARM2 : Action");
 			geometry_msgs::Pose* arm2_pck_lctn = env_->getPickupLocations()->at("agv2").at(order_part->getPartType());
-//			ROS_WARN_STREAM("DP : 222222222");
+			//			ROS_WARN_STREAM("DP : 222222222");
 			ROS_WARN_STREAM("Value of pose is in DP =>" << *arm2_pck_lctn);
 			arm2_->pickPartFromBelt(arm2_pck_lctn);
 			delivered = completeSinglePartOrder(arm2_,order_part);
 			//				delivered =true;
 
-					}
+		}
 
 
 		if (!delivered)
@@ -416,7 +422,13 @@ bool DynamicPlanner::completeSinglePartOrder(RobotController* arm, OrderPart *or
 		// Pick from right side // TODO check this function
 		// Change Orientation to Down Side // TODO check this function
 	}
-	arm->GoToQualityCamera(); // TODO Perfect This function
+	if(order->getAgvId() ==  "agv1" and arm->getArmName() == "arm1") {
+		arm->GoToQualityCamera(); // TODO Perfect This function
+	}
+	if(order->getAgvId() ==  "agv2" and arm->getArmName() == "arm2") {
+		arm->GoToQualityCamera(); // TODO Perfect This function
+	}
+
 	arm->dropPart(order->getEndPose()); // TODO Perfect This function
 
 	env_->setQualityCameraRequired(order->getAgvId(), true); // TODO implement inverse method of continuos input

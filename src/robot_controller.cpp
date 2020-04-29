@@ -81,6 +81,9 @@ RobotController::RobotController(std::string arm_id)
 
 RobotController::~RobotController(){}
 
+std::string RobotController::getArmName() {
+	return arm_id_;
+}
 void RobotController::initialSequence(){
 	SendRobotHome();  // @TODO @Srinivas find the joint state near the home joint pose faced down
 	lookupTransform();

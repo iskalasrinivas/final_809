@@ -156,7 +156,7 @@ public:
 	bool isAtQualitySensor();
 	void setAtQualitySensor();
 
-
+	std::string getArmName();
 	void GoToJointState(const std::vector<double> &);
 	geometry_msgs::Pose getHomeCartPose();
 	void GotoTarget(const geometry_msgs::Pose&);

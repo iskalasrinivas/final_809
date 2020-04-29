@@ -150,8 +150,8 @@ void RobotController::chooseArm() {
 		home_joint_pose_ = {1.0, 3.14, -2.0, 2.14, -1.7, -1.59, 0.0};
 		home_joint_fl_arm = {1.0, 3.14, -2.0, 2.14, -1.7, -3.14, 0.0};
 		home_joint_fr_arm = {1.0, 3.14, -2.0, 2.14, -1.7, 0, 0.0};
-		belt_joint_pose_ = { -0.3, 0, -0.7, 1.65, -2.5, -1.59, 0.0};
-
+		//		belt_joint_pose_ = { -0.3, 0, -0.7, 1.65, -2.5, -1.59, 0.0};
+		belt_joint_pose_ = { 0.7,-0.9, -0.05,0.2 , -1.65, -1.59, 0.0};
 		quality_cam_joint_position_ = { 1.1, 1.4, -0.5, 1.25, -2.35, -1.59, 0.0  };
 
 		trash_bin_joint_position_ = {1.18, 2.01, -1.38, 2.26, -2.3, -1.59, 0.0};
@@ -183,7 +183,8 @@ void RobotController::chooseArm() {
 		trash_bin_joint_position_ = { -1.18, -2.76, -2.08, 2.71, 3.29, -1.51, 0.0 };
 		// home_joint_ff_arm = home_joint_fl_arm;
 
-		belt_joint_pose_ = {-0.6, 0, -0.7, 1.65, -2.5, -1.59, 0.0 };
+//		belt_joint_pose_ = {-0.6, 0, -0.7, 1.65, -2.5, -1.59, 0.0 };
+		belt_joint_pose_ = { 0.4,-0.9, -0.05,0.2 , -1.65, -1.59, 0.0 };
 		static_bin_pose.position.x = -0.04;
 		static_bin_pose.position.y = -1.07;
 		static_bin_pose.position.z = 1.41;
@@ -335,17 +336,17 @@ void RobotController::dropInTrash() {
 
 
 void RobotController::GoToQualityCamera() {
-//	ros::AsyncSpinner spinner(4);
-//	robot_move_group_.setPoseTarget(quality_static_pose);
-//	spinner.start();
-//	ROS_INFO_STREAM(" Going to Quality Camera");
-//	ros::Duration(interval).sleep();
-//	if (this->Planner()) {
-//		ros::Duration(interval).sleep();
-//		robot_move_group_.move();
-//		ROS_INFO_STREAM(" Reached Quality Camera Position");
-//		ros::Duration(interval).sleep();
-//	}
+	//	ros::AsyncSpinner spinner(4);
+	//	robot_move_group_.setPoseTarget(quality_static_pose);
+	//	spinner.start();
+	//	ROS_INFO_STREAM(" Going to Quality Camera");
+	//	ros::Duration(interval).sleep();
+	//	if (this->Planner()) {
+	//		ros::Duration(interval).sleep();
+	//		robot_move_group_.move();
+	//		ROS_INFO_STREAM(" Reached Quality Camera Position");
+	//		ros::Duration(interval).sleep();
+	//	}
 	GoToJointState(quality_cam_joint_position_);
 	setAtQualitySensor();
 }
@@ -504,26 +505,27 @@ void RobotController::collisionAvoidance()
 
 void RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
 {
-	while(part_pose == nullptr) {
-//		ROS_WARN_STREAM("Waiting for part come under belt camera for pickup...");
-		ros::Duration(0.001).sleep();
-	}
-	ROS_WARN_STREAM("Value of pose is in ACTION =>" << *part_pose);
+	//	while(part_pose == nullptr) {
+	////		ROS_WARN_STREAM("Waiting for part come under belt camera for pickup...");
+	//	}
+
+//	ROS_INFO_STREAM("RC ACTION =>" << *part_pose);
 	// TODO passing current pose as making a local copy of the part pose
-	double belt_speed = 0.05; // Trial error
-	double belt_height = 0.90;
-	double object_thickness = std::fabs(part_pose->position.z - belt_height); //half odf the object thickness
-	geometry_msgs::Pose arrival_pose = *part_pose;
-	arrival_pose.position.z = part_pose->position.z + 1.1 * object_thickness + 0.05;
-	arrival_pose.position.y -= belt_speed;
-	GoToTarget(arrival_pose);
 	GripperToggle(true);
+	double belt_speed = 0.3; // Trial error
+	double belt_height = 0.90;
+	double object_thickness = std::fabs(part_pose->position.z - belt_height)+0.025; //half odf the object thickness
+	geometry_msgs::Pose arrival_pose = *part_pose;
+	arrival_pose.position.z = part_pose->position.z + 1.1 * object_thickness;
+	arrival_pose.position.y -= 1.4*belt_speed;
+	GoToTarget(arrival_pose);
+
 	ROS_WARN_STREAM("Gripper toggled");
 	geometry_msgs::Pose picking_pose = *part_pose;
 	if (!isPartAttached())
 	{
 		int count = 0;
-		picking_pose.position.z = part_pose->position.z + object_thickness + 0.02;
+		picking_pose.position.z = part_pose->position.z + object_thickness;
 		picking_pose.position.y = part_pose->position.y - belt_speed;
 		GoToTarget(picking_pose);
 		picking_pose.position.z = part_pose->position.z + 1.1 * object_thickness + 0.05;
@@ -533,7 +535,7 @@ void RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
 		while (!isPartAttached() or count <= 3)
 		{
 			ROS_WARN_STREAM("Part not attached");
-			picking_pose.position.z = part_pose->position.z + object_thickness + 0.004;
+			picking_pose.position.z = part_pose->position.z + object_thickness + 0.02;
 			picking_pose.position.y =  part_pose->position.y - belt_speed;
 			GoToTarget(picking_pose);
 			picking_pose.position.z = part_pose->position.z + 1.1 * object_thickness + 0.05;
@@ -541,8 +543,10 @@ void RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
 			GoToTarget(picking_pose);
 			++count;
 		}
-		ROS_INFO_STREAM("Part attached");
-		picking_pose.position.z += 0.2;
-		GoToTarget(picking_pose);
+	}
+	if (isPartAttached()) {
+	ROS_INFO_STREAM("Part attached");
+	picking_pose.position.z += 0.2;
+	GoToTarget(picking_pose);
 	}
 }

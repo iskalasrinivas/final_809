@@ -55,16 +55,17 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <competition.h>
 
-Competition::Competition() 
+Competition::Competition(Environment* env)
 : async_spinner(0),
   current_score_(0),
-  sensor_(&env_),
-  order_manager_(&env_),
-  dplan_(&env_) {
+  env_(env),
+  sensor_(env),
+  order_manager_(env),
+  dplan_(env) {
 
  // manager_(&comp_nh_);
  async_spinner.start();
-
+ env_ = new Environment();
  current_score_subscriber = comp_nh_.subscribe("/ariac/current_score", 10,&Competition::current_score_callback, this);
 
  // Subscribe to the '/ariac/competition_state' topic.

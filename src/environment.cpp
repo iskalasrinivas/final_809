@@ -20,7 +20,8 @@ Environment::Environment()
 	trash_bin_pose_.orientation.z = 0;
 	pq["agv1"] = new PriorityQueue();
 	pq["agv2"] = new PriorityQueue();
-
+	pickuplocations["agv1"];
+	pickuplocations["agv2"];
 };
 
 Environment::~Environment(){};

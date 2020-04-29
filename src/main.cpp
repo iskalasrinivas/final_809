@@ -43,6 +43,7 @@
 #include <std_srvs/Trigger.h>
 #include <tf/tf.h>
 #include <iostream>
+#include <environment.h>
 #include "order_manager.h"
 //#include "../include/group6_rwa4/competition.h"
 #include "competition.h"
@@ -60,7 +61,9 @@ int main(int argc, char **argv) {
 // ros::Duration(20).sleep();
 
 //
- Competition mycompetition;
+ Environment* env_ = new Environment();
+ ros::Duration(1.0).sleep();
+ Competition mycompetition(env_);
  
  ros::waitForShutdown();
 // }

@@ -73,7 +73,7 @@ class Competition {
 
     ros::NodeHandle comp_nh_;
     ros::AsyncSpinner async_spinner;
-    Environment env_;
+    Environment* env_;
     OrderManager order_manager_;
     SensorManager sensor_;
     DynamicPlanner dplan_;
@@ -88,7 +88,7 @@ class Competition {
     ros::Subscriber competition_state_subscriber;
 
   public:
-    Competition();
+    Competition(Environment*);
     ~Competition();
     /// Called when a new message is received.
     void current_score_callback(const std_msgs::Float32::ConstPtr & );

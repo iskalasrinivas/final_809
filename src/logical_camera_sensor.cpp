@@ -11,6 +11,7 @@ LogicalCameraSensor::LogicalCameraSensor(std::string topic, Environment* env, bo
   transform_(topic) {
 	async_spinner.start();
 	getCameraName(topic);
+	was_trigger_cam_empty = true;
 
 	if (bincam_)
 	{
@@ -28,9 +29,9 @@ LogicalCameraSensor::LogicalCameraSensor(std::string topic, Environment* env, bo
 		std::map<std::string, bool> * beltcamboolmap_ = environment_->getBeltCamBoolMap();
 		(*beltcamboolmap_)[cam_name] = false;
 	}
-    ros::Duration(0.2).sleep();
+	ros::Duration(0.2).sleep();
 	logical_subscriber_ = logical_nh_.subscribe(topic_, 10, &LogicalCameraSensor::logicalCameraCallback, this);
-    ros::Duration(0.2).sleep();
+	ros::Duration(0.2).sleep();
 }
 
 LogicalCameraSensor::~LogicalCameraSensor() {}
@@ -51,7 +52,7 @@ std::string LogicalCameraSensor::getCameraName(std::string topic_)
 
 
 void LogicalCameraSensor::SortAllBinParts() {
-//	ROS_INFO_STREAM("<<<<<Sorting all bin parts>>>>>");
+	//	ROS_INFO_STREAM("<<<<<Sorting all bin parts>>>>>");
 	auto sorted_all_binParts = environment_->getSortedBinParts();
 	auto all_binParts = environment_->getAllBinParts();
 	sorted_all_binParts->clear();
@@ -93,64 +94,70 @@ void LogicalCameraSensor::logicalCameraCallback(const osrf_gear::LogicalCameraIm
 	}
 }
 
+bool LogicalCameraSensor::was_trigger_cam_empty {};
 // TODO
 void LogicalCameraSensor::beltTriggerLogicalCameraCallback(const osrf_gear::LogicalCameraImage::ConstPtr& image_msg) {
 	std::map<std::string, std::set<OrderPart *> > * unavaialbaleParts = environment_->getUnavailableParts();
 	std::map<std::string, std::map<std::string, geometry_msgs::Pose*> >* pickuplocations =   environment_->getPickupLocations();
+	if(image_msg->models.empty()) {was_trigger_cam_empty = true;}
 
-	if (!image_msg->models.empty()) {
-		for (auto it = image_msg->models.begin(); it != image_msg->models.end(); ++it) {
-			bool should_break = false;
-			for (auto uap_map_it = unavaialbaleParts->begin(); uap_map_it != unavaialbaleParts->end(); ++uap_map_it ) {
-				for (auto part_it = uap_map_it->second.begin(); part_it != uap_map_it->second.end(); ++part_it ) {
-					if((*part_it)->getPartType() == it->type) {
-						(*part_it)->setHighestPriority();
-						(*pickuplocations)[(*part_it)->getAgvId()][(*part_it)->getPartType()] = nullptr;
-						ROS_WARN_STREAM("Created => " << (*part_it)->getAgvId());
-						should_break = true;
+	if(was_trigger_cam_empty) {
+		if (!image_msg->models.empty()) {
+			was_trigger_cam_empty = false;
+			for (auto it = image_msg->models.begin(); it != image_msg->models.end(); ++it) {
+				bool should_break = false;
+				for (auto uap_map_it = unavaialbaleParts->begin(); uap_map_it != unavaialbaleParts->end(); ++uap_map_it ) {
+					for (auto part_it = uap_map_it->second.begin(); part_it != uap_map_it->second.end(); ++part_it ) {
+						if((*part_it)->getPartType() == it->type) {
+							(*part_it)->setHighestPriority();
+							if(! (*pickuplocations)[(*part_it)->getAgvId()].count((*part_it)->getPartType())) {
+								(*pickuplocations)[(*part_it)->getAgvId()][(*part_it)->getPartType()] = nullptr;
+
+								ROS_WARN_STREAM("LC Created T : " << (*part_it)->getAgvId() << " " << (*part_it)->getPartType());
+								should_break = true;
+							}
+						}
+						if(should_break) { break; }
 					}
 					if(should_break) { break; }
 				}
-				if(should_break) { break; }
 			}
 		}
 	}
 
-//	ROS_INFO_STREAM("<<<<<Sequence of Trigger Camera Callback is finished !!>>>>>");
+	//	ROS_INFO_STREAM("<<<<<Sequence of Trigger Camera Callback is finished !!>>>>>");
 }
 
 
-// TODO : @  
-void LogicalCameraSensor::beltLogicalCameraCallback(std::string agv_id, const osrf_gear::LogicalCameraImage::ConstPtr& image_msg)
-{
+// TODO : @
+void LogicalCameraSensor::beltLogicalCameraCallback(std::string agv_id, const osrf_gear::LogicalCameraImage::ConstPtr& image_msg) {
 	auto sensor_pose = image_msg->pose;
 	// transform_.setParentPose(sensor_pose);
 
 	std::map<std::string, geometry_msgs::Pose*>* armpickuplocation = &((*environment_->getPickupLocations())[agv_id]);
-	ROS_WARN_STREAM("STUCK0");
-//	ROS_WARN_STREAM("Size of belt array : " << image_msg->models.size());
+//	ROS_WARN_STREAM("STUCK0");
+	//	ROS_WARN_STREAM("Size of belt array : " << image_msg->models.size());
 	for (auto it = image_msg->models.begin(); it != image_msg->models.end(); ++it) {
-		ROS_WARN_STREAM("STUCK12134");
+//		ROS_WARN_STREAM("STUCK11");
 		if (armpickuplocation->count(it->type)) {
-			ROS_WARN_STREAM("STUCK1");
-			// transform_.setChildPose(it->pose);
-			// transform_.setWorldTransform();
+//			ROS_WARN_STREAM("STUCK1");
 			geometry_msgs::Pose pose = transform_.getChildPose(it->pose);
 			if (armpickuplocation->at(it->type) == nullptr) {
-				ROS_WARN_STREAM("STUCK2");
+//				ROS_WARN_STREAM("STUCK2");
 				armpickuplocation->at(it->type) = new geometry_msgs::Pose();
 				*(armpickuplocation->at(it->type)) = pose;
-				ROS_WARN_STREAM("STUCK22");
-				ROS_WARN_STREAM("Value of pose assigned is new Pose()");
+				//				ROS_WARN_STREAM("STUCK22");
+				ROS_WARN_STREAM("LC New B " << *(environment_->getPickupLocations()->at(agv_id).at(it->type)));
+//				ROS_WARN_STREAM("Value of pose assigned is new Pose()");
 			} else if (armpickuplocation->at(it->type)->position.y > it->pose.position.y) {
-				ROS_WARN_STREAM("STUCK3");
+//								ROS_WARN_STREAM("STUCK3");
 				*(armpickuplocation->at(it->type)) = pose;
-				ROS_WARN_STREAM("Value of pose assigned is =>" << pose);
+				ROS_WARN_STREAM("LC Old B " << *(environment_->getPickupLocations()->at(agv_id).at(it->type)));
 			}
 		}
 	}
 
-//	ROS_INFO_STREAM("<<<<<Sequence of Belt Pick up Finished !!>>>>>");
+	//	ROS_INFO_STREAM("<<<<<Sequence of Belt Pick up Finished !!>>>>>");
 }
 
 void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::LogicalCameraImage::ConstPtr& image_msg) {
@@ -193,7 +200,7 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 
 			SortAllBinParts();
 		}
-//	}
+		//	}
 		if (bincam_) {
 			auto bincambool_ = environment_->getBinCamBoolMap();
 			(*bincambool_)[cam_name] = true;
@@ -204,11 +211,11 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 					count += 1;
 				}
 			}
-//			ROS_INFO_STREAM(cam_name << " : Bin Debug : " << count << " of " << bincamsize_);
+			//			ROS_INFO_STREAM(cam_name << " : Bin Debug : " << count << " of " << bincamsize_);
 			if (count == bincamsize_) {
-//				SortAllBinParts();
+				//				SortAllBinParts();
 				environment_->setAllBinCameraCalled(true);
-//				environment_->setBinCameraRequired(false);
+				//				environment_->setBinCameraRequired(false);
 				environment_->resetBinCamBoolmap();
 			}
 		}
@@ -223,10 +230,10 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 					count += 1;
 				}
 			}
-//			ROS_INFO_STREAM(cam_name << " : Tray Debug : " << count << " of " <<traycamsize_);
+			//			ROS_INFO_STREAM(cam_name << " : Tray Debug : " << count << " of " <<traycamsize_);
 			if (count == traycamsize_) {
 				environment_->setAllTrayCameraCalled(true);
-//				environment_->setTrayCameraRequired(false);
+				//				environment_->setTrayCameraRequired(false);
 				environment_->resetTrayCamBoolmap();
 			}
 		}
@@ -245,6 +252,6 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 				}
 			}
 		}
-//		ROS_INFO_STREAM("<<<<<Sequence of Tray & bin Camera Callback is finished !!>>>>>");
+		//		ROS_INFO_STREAM("<<<<<Sequence of Tray & bin Camera Callback is finished !!>>>>>");
 	}
 }

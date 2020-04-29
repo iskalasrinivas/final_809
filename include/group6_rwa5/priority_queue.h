@@ -41,6 +41,7 @@
 #ifndef GROUP6_RWA5_PRIORITYQUEUE_H
 #define GROUP6_RWA5_PRIORITYQUEUE_H
 #include <vector>
+//#include <mutex>
 #include <order_part.h>
 
 class PriorityQueue {
@@ -61,6 +62,7 @@ public:
 
 private:
 std::vector<OrderPart*> priority_queue_;
+//std::mutex mtx;
 };
 
 #endif // GROUP6_RWA5_PRIORITYQUEUE_H

@@ -8,7 +8,7 @@ Transformer::Transformer(const std::string &topic) : topic_(topic), tf_listener(
    // child_ = parent_ + "_child";
    auto ind = topic.rfind('/');
    frame_ = topic.substr(ind + 1, topic.size() - ind) + "_frame";
-   ROS_WARN_STREAM("parent frame is : " << frame_);
+//   ROS_WARN_STREAM("parent frame is : " << frame_);
 }
 
 Transformer::Transformer() : tf_listener(tf_buffer)

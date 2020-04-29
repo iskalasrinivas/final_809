@@ -65,6 +65,7 @@ void OrderManager::OrderCallback(const osrf_gear::Order::ConstPtr &order_msg)
 {
 	ROS_WARN(">>>>> OrderCallback");
 	environment->clearPriorityQueue();
+	environment->clearANYvector();
 	setOrderParts(order_msg);         // create new order and assign agv_id and shipment type to parts
 	setArmForAnyParts();              // if there are "any" parts assign them to either arm1 or arm2
 	comparewithTrayandUpdateOrder();  // check whether tray camera is called and segregate into trash parts and tray parts
@@ -79,17 +80,25 @@ void OrderManager::setOrderParts(const osrf_gear::Order::ConstPtr &order_msg)
 	auto order_id = order_msg->order_id;
 	auto shipments = order_msg->shipments;
 	auto pq = environment->getPriorityQueue();
+	auto vector_ofshipments_withANY_tag = environment->getShipmentsOfAnyTagId();
 	for (const auto &shipment : shipments)
 	{
+		bool is_shipment_any =false;
 		std::map<std::string, std::vector<OrderPart *>> shipment_Parts;
 		auto shipment_type = shipment.shipment_type;
 		auto agv_id = shipment.agv_id;
 		auto products = shipment.products;
+		std::vector <OrderPart*> one_shipment_with_any;
 		for (const auto &product : products)
 		{
 			std::string part_type = product.type;
 			OrderPart *order_part = new OrderPart(shipment_type, agv_id, part_type, product.pose);
-			(*pq)[order_part->getAgvId()].push(order_part);  // agv1 , agv2, any
+			if(order_part->getAgvId() != "any") {
+				(*pq)[order_part->getAgvId()]->push(order_part);  // agv1 , agv2, any
+			} else {
+				one_shipment_with_any.push_back(order_part);
+				is_shipment_any = true;
+			}
 			// ground truth shipments
 			auto shipments = environment->getShipments();
 			if(shipments->count(order_part->getShipmentId())) {
@@ -102,9 +111,13 @@ void OrderManager::setOrderParts(const osrf_gear::Order::ConstPtr &order_msg)
 				(*shipments)[order_part->getShipmentId()][part_type] = 0;
 			}
 		}
+		if(is_shipment_any) {
+			vector_ofshipments_withANY_tag->push_back(one_shipment_with_any);
+
+		}
 	}
 
-	ROS_INFO_STREAM("<<<<<Finished setting order parts>>>>>");
+	ROS_INFO_STREAM("<<<<<Finished setting order parts>>>>>" );
 }
 
 // TODO check rbegin works properly
@@ -113,27 +126,27 @@ void OrderManager::setArmForAnyParts()
 	ROS_INFO_STREAM("<<<<< Smart Decision for ANY tagged shipment>>>>>" << std::endl);
 	int agv1_score = 0;
 	int agv2_score = 0;
+	ros::Duration(0.1).sleep();
+	std::map<std::string, PriorityQueue*>* pq = environment->getPriorityQueue();
+	PriorityQueue* pq_agv1 = (*pq)["agv1"];
+	PriorityQueue* pq_agv2 = (*pq)["agv1"];
 
-	auto pq = environment->getPriorityQueue();
+	std::vector<std::vector <OrderPart*>> * shipments_ANY = environment->getShipmentsOfAnyTagId();
 
-	if (!pq->count("any")) {
+	if (shipments_ANY->size() == 0) {
 		return;
 	}
 
-	PriorityQueue &pq_any = pq->at("any");
-
 	std::array<std::map<std::string, int>, 2> arr = environment->getCountOfavailablePartsArmWise();
+	ROS_WARN_STREAM("Check1");
 	std::map<std::string, int> parttype_count_agv1 = arr[0];
 	std::map<std::string, int> parttype_count_agv2 = arr[1];
 
-	int previousShipmentID = (*(pq_any.getpq()->rbegin()))->getShipmentId();
-
-	auto start_it = pq_any.getpq()->rbegin();
-	// 222222 111111 000000
-	for (auto pq_any_it = pq_any.getpq()->rbegin(); pq_any_it != pq_any.getpq()->rend(); ++pq_any_it) {
-		if ((*pq_any_it)->getShipmentId() == previousShipmentID) {
-			auto part_type = (*pq_any_it)->getPartType();
-
+	for (auto any_ship_it = shipments_ANY->begin(); any_ship_it != shipments_ANY->end(); ++any_ship_it) {
+		agv1_score = 0;
+		agv2_score = 0;
+		for(auto part_it = any_ship_it->begin(); part_it != any_ship_it->end(); ++part_it) {
+			auto part_type = (*part_it)->getPartType();
 			if (parttype_count_agv1.count(part_type)) {
 				if (parttype_count_agv1[part_type] > 0) {
 					++agv1_score;
@@ -147,33 +160,30 @@ void OrderManager::setArmForAnyParts()
 				}
 			}
 		}
+		ros::Duration(0.1).sleep();
 
-		if ((*pq_any_it)->getShipmentId() != previousShipmentID or pq_any_it == pq_any.getpq()->rend() - 1) {
-			if (agv1_score >= agv2_score) {
-				while (start_it != pq_any_it) {
-					(*start_it)->setAgvId("agv1");
-					(*start_it)->worldTransformation();
-					(*pq)["agv1"].push(*start_it);
-					start_it++;
-					parttype_count_agv2[(*start_it)->getPartType()] += 1;
-				}
-			} else {
-				while (start_it != pq_any_it) {
-					(*start_it)->setAgvId("agv2");
-					(*start_it)->worldTransformation();
-					(*pq)["agv2"].push(*start_it);
-					start_it++;
-					parttype_count_agv1[(*start_it)->getPartType()] += 1;
-				}
+		ROS_WARN_STREAM("AGV Score : "  << agv1_score << " " << agv2_score);
+		if (agv1_score >= agv2_score) {
+			for(auto part_it = any_ship_it->begin(); part_it != any_ship_it->end(); ++part_it) {
+				(*part_it)->setAgvId("agv1");
+				ros::Duration(0.01).sleep();
+				(*part_it)->worldTransformation();
+				ros::Duration(0.01).sleep();
+				pq_agv1->push(*part_it);
+				parttype_count_agv2[(*part_it)->getPartType()] += 1;
 			}
-
-			agv1_score = 0;
-			agv2_score = 0;
-			previousShipmentID = (*pq_any_it)->getShipmentId();
+		} else {
+			for(auto part_it = any_ship_it->begin(); part_it != any_ship_it->end(); ++part_it) {
+				(*part_it)->setAgvId("agv2");
+				ros::Duration(0.01).sleep();
+				(*part_it)->worldTransformation();
+				ros::Duration(0.01).sleep();
+				pq_agv2->push(*part_it);
+				parttype_count_agv2[(*part_it)->getPartType()] += 1;
+			}
 		}
 	}
-	// clear any since it is dealt with
-	pq_any.clear();
+	environment->clearANYvector();
 	ROS_INFO_STREAM("<<<<<Finished allocating arm for any Parts>>>>>");
 }
 
@@ -208,7 +218,7 @@ void OrderManager::comparewithTrayandUpdate(std::string agv_id,
 		auto part_type = traypart_map.first;
 		auto part_vec = traypart_map.second;
 
-		for (auto pq1_it = pq1.getpq()->begin(); pq1_it != pq1.getpq()->end(); ++pq1_it)
+		for (auto pq1_it = pq1->getpq()->begin(); pq1_it != pq1->getpq()->end(); ++pq1_it)
 		{
 			if ((*pq1_it)->getShipmentId() == 0) // only for first shipment
 			{  // under assumption that first shipment has shipment id == 0
@@ -217,7 +227,7 @@ void OrderManager::comparewithTrayandUpdate(std::string agv_id,
 					if ((*pq1_it)->getPartType() == part_type and (*pq1_it)->getEndPose() == (*part_it))
 					{
 						ROS_INFO_STREAM("There are parts in Tray" << agv_id << "similar to current Order");
-						pq1.getpq()->erase(pq1_it);
+						pq1->getpq()->erase(pq1_it);
 						part_vec.erase(part_it);
 					}
 				}
@@ -231,7 +241,7 @@ void OrderManager::comparewithTrayandUpdate(std::string agv_id,
 		auto part_type = traypart_map.first;
 		auto part_vec = traypart_map.second;
 
-		for (auto pq1_it = pq1.getpq()->begin(); pq1_it != pq1.getpq()->end(); ++pq1_it)
+		for (auto pq1_it = pq1->getpq()->begin(); pq1_it != pq1->getpq()->end(); ++pq1_it)
 		{
 			if ((*pq1_it)->getShipmentId() == 0) // only for first shipment
 			{  // under assumption that first shipment has shipment id == 0
@@ -261,7 +271,7 @@ void OrderManager::comparewithTrayandUpdate(std::string agv_id,
 			trash_part->setPartType(part_type);
 			trash_part->setCurrentPose(*part_it);
 			trash_part->setEndPose(environment->getTrashBinPose());
-			pq1.push(trash_part);
+			pq1->push(trash_part);
 		}
 	}
 }
@@ -274,7 +284,7 @@ void OrderManager::UpdateUnavailableParts()
 	for (auto pq_it = pq_map->begin(); pq_it != pq_map->end(); ++pq_it)
 	{
 		auto agv_id = pq_it->first;
-		for (auto o_it = pq_it->second.getpq()->begin(); o_it != pq_it->second.getpq()->end(); ++o_it)
+		for (auto o_it = pq_it->second->getpq()->begin(); o_it != pq_it->second->getpq()->end(); ++o_it)
 		{
 			if (!binParts->count((*o_it)->getPartType()))
 			{
@@ -283,15 +293,13 @@ void OrderManager::UpdateUnavailableParts()
 		}
 	}
 	for (auto pq_it = pq_map->begin(); pq_it != pq_map->end(); ++pq_it) {
-		ROS_INFO_STREAM("------------------");
-		pq_it->second.printPq();
-		ROS_INFO_STREAM("------------------");
+		pq_it->second->printPq();
 	}
 
 }
 
 void OrderManager::executeDynamicPlanner() {
-
+	ros::Duration(0.1).sleep();
 	std_msgs::Bool msg;
 	msg.data = true;
 	for(size_t i=0; i<1; ++i){

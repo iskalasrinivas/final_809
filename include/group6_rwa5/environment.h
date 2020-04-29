@@ -20,7 +20,8 @@ private:
   std::map<std::string, std::set<OrderPart *>> unAvailablePartsForArm;  // agv_id
 
   std::map<std::string, std::map<std::string, geometry_msgs::Pose*>> pickuplocations;  // agv_id, part_type
-  std::map<std::string, PriorityQueue> pq;                                            //  string here is agv_id
+  std::map<std::string, PriorityQueue*> pq;                                            //  string here is agv_id
+  std::vector<std::vector <OrderPart*>> shipment_with_ANY_tag;
   AvailableBinPoses availablebinposes_;
   std::map<std::string, int> parttype_count_agv1, parttype_count_agv2;
   std::map<std::string, int> parttype_bin_count_agv1, parttype_bin_count_agv2;
@@ -113,7 +114,7 @@ public:
   bool isConveyor2Triggered() const;
 
   // priority queue related member functions here please!!!
-  std::map<std::string, PriorityQueue> *getPriorityQueue();
+  std::map<std::string, PriorityQueue*> *getPriorityQueue();
   void clearPriorityQueue();
 
   AvailableBinPoses *getAvailableBinPosesObject();
@@ -128,6 +129,8 @@ public:
   std::map<std::string, std::vector<OrderPart*> >* getCompletedShipment();
   void ensureAllPartsinAllBinsareUpdated();
   void ensureAllPartsinBothTraysareUpdated();
+  std::vector<std::vector <OrderPart*>> * getShipmentsOfAnyTagId();
+  void clearANYvector();
 };
 
 #endif  // GROUP6_RWA4_ENVIRONMENT_H

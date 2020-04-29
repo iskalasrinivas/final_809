@@ -147,11 +147,14 @@ bool RobotController::Planner() {
 
 void RobotController::chooseArm() {
 	if (arm_id_ == "arm1") {
-		home_joint_pose_ = {1.0, 3.14, -2.0, 2.14, -1.7, -1.59, 0.126}; 
-		home_joint_fl_arm = {1.0, 3.14, -2.0, 2.14, -1.7, -3.14, 0.126};
-		home_joint_fr_arm = {1.0, 3.14, -2.0, 2.14, -1.7, 0, 0.126};
-		belt_joint_pose_ = { 0.1, 3.14, -2.7, -1.0, 2.1, -1.59, 0.126 };
+		home_joint_pose_ = {1.0, 3.14, -2.0, 2.14, -1.7, -1.59, 0.0};
+		home_joint_fl_arm = {1.0, 3.14, -2.0, 2.14, -1.7, -3.14, 0.0};
+		home_joint_fr_arm = {1.0, 3.14, -2.0, 2.14, -1.7, 0, 0.0};
+		belt_joint_pose_ = { -0.3, 0, -0.7, 1.65, -2.5, -1.59, 0.0};
 
+		quality_cam_joint_position_ = { 1.1, 1.4, -0.5, 1.25, -2.35, -1.59, 0.0  };
+
+		trash_bin_joint_position_ = {1.18, 2.01, -1.38, 2.26, -2.3, -1.59, 0.0};
 		// home_joint_ff_arm = home_joint_fr_arm;
 		static_bin_pose.position.x = -0.13;
 		static_bin_pose.position.y = 0.75;
@@ -170,16 +173,17 @@ void RobotController::chooseArm() {
 		agv_position_.position.y = agv_tf_transform_.getOrigin().y();
 		agv_position_.position.z = agv_tf_transform_.getOrigin().z() + 4 * offset_;
 
-		quality_cam_joint_position_ = { 1.18, 1.4, -0.38, 1.13, 2.26, -1.51, 0.0 };
 
-		trash_bin_joint_position_ = { 1.18, 2.01, -1.38, 2.26, 3.27, -1.51, 0.0 };
 	} else if (arm_id_ == "arm2") {
-		home_joint_pose_ = {-0.9, 3.14, -2.0, 2.14, -1.7, -1.59, 0.126};
-		home_joint_fl_arm = {-0.9, 3.14, -2.0, 2.14, -1.7, -3.14, 0.126};
-		home_joint_fr_arm = {-0.9, 3.14, -2.0, 2.14, -1.7, 0, 0.126};
+		home_joint_pose_ = {-0.9, -3.14, -2.0, 2.14, -1.7, -1.59, 0.0};
+		home_joint_fl_arm = {-0.9, -3.14, -2.0, 2.14, -1.7, -3.14, 0.0};
+		home_joint_fr_arm = {-0.9, -3.14, -2.0, 2.14, -1.7, 0, 0.0};
+		quality_cam_joint_position_ = { -1.2, -1.68, -0.38, 1.01,-2.2, -1.51, 0.0  };
+
+		trash_bin_joint_position_ = { -1.18, -2.76, -2.08, 2.71, 3.29, -1.51, 0.0 };
 		// home_joint_ff_arm = home_joint_fl_arm;
 
-		belt_joint_pose_ = { 0.1, 3.14, -2.7, -1.0, 2.1, -1.59, 0.126 };
+		belt_joint_pose_ = {-0.6, 0, -0.7, 1.65, -2.5, -1.59, 0.0 };
 		static_bin_pose.position.x = -0.04;
 		static_bin_pose.position.y = -1.07;
 		static_bin_pose.position.z = 1.41;
@@ -194,9 +198,7 @@ void RobotController::chooseArm() {
 		agv_position_.position.y = agv_tf_transform_.getOrigin().y();
 		agv_position_.position.z = agv_tf_transform_.getOrigin().z() + 4 * offset_;
 
-		quality_cam_joint_position_ = { -1.2, 4.50, -0.38, 1.01, 2.5, -1.51, 0.0 };
 
-		trash_bin_joint_position_ = { -1.18, 3.52, -2.08, 2.71, 3.29, -1.51, 0.0 };
 	}
 }
 
@@ -333,17 +335,19 @@ void RobotController::dropInTrash() {
 
 
 void RobotController::GoToQualityCamera() {
-	ros::AsyncSpinner spinner(4);
-	robot_move_group_.setPoseTarget(quality_static_pose);
-	spinner.start();
-	ROS_INFO_STREAM(" Going to Quality Camera");
-	ros::Duration(interval).sleep();
-	if (this->Planner()) {
-		ros::Duration(interval).sleep();
-		robot_move_group_.move();
-		ROS_INFO_STREAM(" Reached Quality Camera Position");
-		ros::Duration(interval).sleep();
-	}
+//	ros::AsyncSpinner spinner(4);
+//	robot_move_group_.setPoseTarget(quality_static_pose);
+//	spinner.start();
+//	ROS_INFO_STREAM(" Going to Quality Camera");
+//	ros::Duration(interval).sleep();
+//	if (this->Planner()) {
+//		ros::Duration(interval).sleep();
+//		robot_move_group_.move();
+//		ROS_INFO_STREAM(" Reached Quality Camera Position");
+//		ros::Duration(interval).sleep();
+//	}
+	GoToJointState(quality_cam_joint_position_);
+	setAtQualitySensor();
 }
 
 // TODO @ Sanket Test Flip

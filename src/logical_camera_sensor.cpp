@@ -28,8 +28,9 @@ LogicalCameraSensor::LogicalCameraSensor(std::string topic, Environment* env, bo
 		std::map<std::string, bool> * beltcamboolmap_ = environment_->getBeltCamBoolMap();
 		(*beltcamboolmap_)[cam_name] = false;
 	}
-
+    ros::Duration(0.2).sleep();
 	logical_subscriber_ = logical_nh_.subscribe(topic_, 10, &LogicalCameraSensor::logicalCameraCallback, this);
+    ros::Duration(0.2).sleep();
 }
 
 LogicalCameraSensor::~LogicalCameraSensor() {}
@@ -50,7 +51,7 @@ std::string LogicalCameraSensor::getCameraName(std::string topic_)
 
 
 void LogicalCameraSensor::SortAllBinParts() {
-	ROS_INFO_STREAM("<<<<<Sorting all bin parts>>>>>");
+//	ROS_INFO_STREAM("<<<<<Sorting all bin parts>>>>>");
 	auto sorted_all_binParts = environment_->getSortedBinParts();
 	auto all_binParts = environment_->getAllBinParts();
 	sorted_all_binParts->clear();
@@ -71,7 +72,9 @@ void LogicalCameraSensor::SortAllBinParts() {
 
 void LogicalCameraSensor::logicalCameraCallback(const osrf_gear::LogicalCameraImage::ConstPtr& image_msg)
 { 
+
 	if (beltcam_ == true) {
+		ros::Duration(0.5).sleep();
 		if(cam_name == "logical_camera_9") {
 			beltLogicalCameraCallback("agv1", image_msg);
 		} else if(cam_name == "logical_camera_11") {
@@ -79,9 +82,11 @@ void LogicalCameraSensor::logicalCameraCallback(const osrf_gear::LogicalCameraIm
 		}
 	}
 	if (triggercam_ == true) {
+		ros::Duration(0.5).sleep();
 		beltTriggerLogicalCameraCallback(image_msg);
 	}
 	if(bincam_ == true or traycam_ == true){
+		ros::Duration(1.0).sleep();
 
 		binAndTrayLogicalCameraCallback(image_msg);
 
@@ -174,10 +179,10 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 			}
 		}
 
-//		if (bincammap_->count(cam_name)) { // sort every time :not effective :see 191
-//
-//			SortAllBinParts();
-//		}
+		if (bincammap_->count(cam_name)) { // sort every time :not effective :see 191
+
+			SortAllBinParts();
+		}
 //	}
 		if (bincam_) {
 			auto bincambool_ = environment_->getBinCamBoolMap();
@@ -189,11 +194,11 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 					count += 1;
 				}
 			}
-			ROS_INFO_STREAM(cam_name << " : Bin Debug : " << count << " of " << bincamsize_);
+//			ROS_INFO_STREAM(cam_name << " : Bin Debug : " << count << " of " << bincamsize_);
 			if (count == bincamsize_) {
-				SortAllBinParts();
+//				SortAllBinParts();
 				environment_->setAllBinCameraCalled(true);
-				environment_->setBinCameraRequired(false);
+//				environment_->setBinCameraRequired(false);
 				environment_->resetBinCamBoolmap();
 			}
 		}
@@ -208,10 +213,10 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 					count += 1;
 				}
 			}
-			ROS_INFO_STREAM(cam_name << " : Tray Debug : " << count << " of " <<traycamsize_);
+//			ROS_INFO_STREAM(cam_name << " : Tray Debug : " << count << " of " <<traycamsize_);
 			if (count == traycamsize_) {
 				environment_->setAllTrayCameraCalled(true);
-				environment_->setTrayCameraRequired(false);
+//				environment_->setTrayCameraRequired(false);
 				environment_->resetTrayCamBoolmap();
 			}
 		}

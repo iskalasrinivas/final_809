@@ -41,6 +41,7 @@
 
 #include <algorithm>
 #include <vector>
+//#include <mutex>
 #include <priority_queue.h>
 
 
@@ -91,6 +92,7 @@ void PriorityQueue::clear () {
 
 
 void PriorityQueue::printPq(){
+
     sort();
     ROS_INFO_STREAM("-----------------");
   for (auto it = priority_queue_.rbegin(); it != priority_queue_.rend(); ++it) {

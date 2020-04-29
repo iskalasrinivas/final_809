@@ -5,9 +5,9 @@ Environment::Environment()
 , all_binCamera_called(false)
 , all_trayCamera_called(false)
 , all_qualityCamera_called(false)
-, trayCameraRequired(false)
+, trayCameraRequired(false)  // Earlier :false
 , order_manager_status(false)
-, binCameraRequired(false)
+, binCameraRequired(false) // Earlier :false
 , conveyorTrigger(false)
 {
 	// common trash pose
@@ -18,6 +18,9 @@ Environment::Environment()
 	trash_bin_pose_.orientation.x = 0;
 	trash_bin_pose_.orientation.y = 0;
 	trash_bin_pose_.orientation.z = 0;
+	pq["agv1"] = new PriorityQueue();
+	pq["agv2"] = new PriorityQueue();
+
 };
 
 Environment::~Environment(){};
@@ -39,21 +42,22 @@ std::map<std::string, std::vector<geometry_msgs::Pose>>* Environment::getTray2Pa
 }
 void  Environment::ensureAllPartsinBothTraysareUpdated() {
 	setTrayCameraRequired(true);
+	setAllTrayCameraCalled(false);
 
 	while (!isAllTrayCameraCalled())
 	{
 		ros::Duration(0.1).sleep();
 	}
-	setTrayCameraRequired(false);
+//	setTrayCameraRequired(false);
 }
 void  Environment::ensureAllPartsinAllBinsareUpdated() {
 	setBinCameraRequired(true);
-
+	setAllBinCameraCalled(false);
 	while (!isAllBinCameraCalled())
 	{
 		ros::Duration(0.1).sleep();
 	}
-	setBinCameraRequired(false);
+//	setBinCameraRequired(false);
 }
 
 std::map<std::string, std::map<std::string, std::vector<geometry_msgs::Pose>>>* Environment::getAllTrayParts() {
@@ -198,7 +202,7 @@ bool Environment::isPartFaulty(std::string agv_id) {
 
 bool Environment::isQualityCameraCalled(std::string agv_id)
 {
-	return all_qualityCamera_called[agv_id];
+	return quality_cam_bool_map_[agv_id];
 }
 
 
@@ -237,13 +241,14 @@ AvailableBinPoses* Environment::getAvailableBinPosesObject()
 	return &availablebinposes_;
 }
 
-std::map<std::string, PriorityQueue>* Environment::getPriorityQueue()
+std::map<std::string, PriorityQueue*>* Environment::getPriorityQueue()
 {
 	return &pq;
 }
 void Environment::clearPriorityQueue()
 {
-	pq.clear();
+	pq["agv1"]->clear();
+	pq["agv2"]->clear();
 }
 
 std::array<std::map<std::string, int>, 2> Environment::getCountOfavailablePartsArmWise() {
@@ -251,6 +256,7 @@ std::array<std::map<std::string, int>, 2> Environment::getCountOfavailablePartsA
 	setBinCameraRequired(true);
 	ensureAllPartsinAllBinsareUpdated();
 	ensureAllPartsinBothTraysareUpdated();
+
 	for (auto type_it = sorted_all_binParts.begin(); type_it != sorted_all_binParts.end(); ++type_it) {
 		auto part_type = type_it->first;
 		parttype_count_agv1[part_type] = 0;
@@ -285,8 +291,8 @@ std::array<std::map<std::string, int>, 2> Environment::getCountOfavailablePartsA
 		}
 	}
 
-	setTrayCameraRequired(false);
-	setBinCameraRequired(false);
+//	setTrayCameraRequired(false);
+//	setBinCameraRequired(false);
 
 	std::array<std::map<std::string, int>, 2> retArray{ parttype_count_agv1, parttype_count_agv2 };
 	return retArray;
@@ -320,4 +326,11 @@ std::map<int, std::map<std::string, int>>* Environment::getShipments()
 std::map<std::string, std::vector<OrderPart*>>* Environment::getCompletedShipment()
 {
 	return &completed_shipment_;
+}
+
+std::vector<std::vector <OrderPart*>> * Environment::getShipmentsOfAnyTagId() {
+	return &shipment_with_ANY_tag;
+}
+void Environment::clearANYvector() {
+	shipment_with_ANY_tag.clear();
 }

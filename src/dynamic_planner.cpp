@@ -76,217 +76,21 @@ void DynamicPlanner::updatePickPoseFromBin(OrderPart* order_)
 {
 	// we need to search for the part type in bin parts
 	// if found update pickpose of parts
-	env_->setBinCameraRequired(true);
+	//	env_->setBinCameraRequired(true);
 
-	while (!env_->isAllBinCameraCalled())
-	{
-		ROS_INFO_STREAM("ALL BIN CAMERA IS NOT CALLED...Waiting...");
-		ros::Duration(0.1).sleep();
-	}
+	env_->ensureAllPartsinAllBinsareUpdated();
 	auto part_type = order_->getPartType();
 
-	if (env_->isAllBinCameraCalled())
+
+	auto allbinpart = env_->getSortedBinParts();  // std::map<std::string, std::vector<geometry_msgs::Pose> >*
+	if (allbinpart->count(part_type))
 	{
-		auto allbinpart = env_->getSortedBinParts();  // std::map<std::string, std::vector<geometry_msgs::Pose> >*
-		if (allbinpart->count(part_type))
-		{
-			auto new_pose = (*allbinpart)[part_type].back();
-			order_->setCurrentPose(new_pose);
-			env_->setBinCameraRequired(false);
-			env_->setAllBinCameraCalled(false);
-		}
+		auto new_pose = (*allbinpart)[part_type].back();
+		order_->setCurrentPose(new_pose);
+		//			env_->setBinCameraRequired(false);
+		//			env_->setAllBinCameraCalled(false);
 	}
 }
-
-// void DynamicPlanner::flipPart(OrderPart *order_)
-// {
-//  if (!order_->getFlipPart())
-//  {
-//   // logic to flip the part
-//   auto target_pose = ; //define pose
-//   arm1_.GoToTarget(target_pose);
-//   arm1_.GripperToggle(false);
-//   ros::Duration(0.2).sleep();
-
-//   // after flipping the part set flip part = true
-//   order_->setFlipPart();
-//  }
-// }
-
-// void DynamicPlanner::dynamicPlanning()
-// {
-//    ("<<<<<<<In Execute modules");
-//   // Execute Pre-order tasks of arm1
-//   auto arm1_ = exe_.getArm1Object();
-//   auto arm2_ = exe_.getArm2Object();
-
-//   if (env_->isConveyor1Triggered())
-//   {
-//  // call function to handle cb pickup
-//  arm1_->GoToBeltHome();
-//  arm1_->pickPartFromBelt();
-//   }
-//   if (env_->isConveyor2Triggered())
-//   {
-//  // call function to handle cb pickup
-//  arm2_->GoToBeltHome();
-//  arm2_->pickPartFromBelt();
-//   }
-
-//   std::vector<std::map<std::string, std::vector<OrderPart*>>>* arm1preOrderParts =
-//    env_->getArm1PreOrderParts();  // std::vector<std::map<std::string, std::vector<OrderPart*>>>*
-//   for (auto po1_vec_it = arm1preOrderParts->begin(); po1_vec_it != arm1preOrderParts->end(); ++po1_vec_it)
-//   {
-//  for (auto po1_map_it = po1_vec_it->begin(); po1_map_it != po1_vec_it->end(); ++po1_map_it)
-//  {
-//    for (auto po1_it = po1_map_it->second.begin(); po1_it != po1_map_it->second.end(); ++po1_it)
-//    {  // pol_it is basically iterator to std::vector<OrderPart*>
-//   ROS_INFO_STREAM("<<< Pre Order Arm1 >>>");
-//   // TODO
-//   if (env_->isConveyor1Triggered())
-//   {
-//     // call function to handle cb pickup
-//     arm1_->GoToBeltHome();
-//     arm1_->startBeltOperation();
-//   }
-//   arm1_->pickPart((*po1_it)->getCurrentPose());
-//   ROS_INFO_STREAM("<<<<<<<arm1 going to quality bin");
-//   arm1_->GoToQualityCameraFromBin();
-//   env_->setSeeQualityCamera1(true);
-//   while (not env_->isQuality1Called())
-//   {
-//     ros::Duration(0.1).sleep();
-//     ROS_WARN_STREAM("Waiting for Quality Camera 1 to be called");
-//   }
-//   if (env_->isQualityCamera1Partfaulty())
-//   {
-//     ROS_WARN_STREAM("Part is faulty");
-//     arm1_->dropInTrash();
-//     updatePickPoseFromBin((*po1_it));
-//     --po1_it;
-//   }
-//   else
-//   {
-//     arm1_->deliverPart((*po1_it)->getEndPose());
-//   }
-//   env_->setSeeQualityCamera2(true);
-//    }
-//  }
-//   }
-//   arm1_->SendRobotHome();
-
-//   // Execute Pre-order tasks of arm2
-
-//   std::vector<std::map<std::string, std::vector<OrderPart*>>>* arm2preOrderParts = env_->getArm2PreOrderParts();
-//   for (auto po2_vec_it = arm2preOrderParts->begin(); po2_vec_it != arm2preOrderParts->end(); ++po2_vec_it)
-//   {
-//  for (auto po2_map_it = po2_vec_it->begin(); po2_map_it != po2_vec_it->end(); ++po2_map_it)
-//  {
-//    for (auto po2_it = po2_map_it->second.begin(); po2_it != po2_map_it->second.end(); ++po2_it)
-//    {
-//   ROS_INFO_STREAM("<<< Pre Order Arm2 >>>");
-//   arm2_->pickPart((*po2_it)->getCurrentPose());
-//   ROS_INFO_STREAM("<<<<<<<arm2 going to quality bin");
-//   arm2_->GoToQualityCameraFromBin();
-//   env_->setSeeQualityCamera2(true);
-//   while (not env_->isQuality2Called())
-//   {
-//     ros::Duration(0.1).sleep();
-//     ROS_WARN_STREAM("Waiting for Quality Camera 2 to be called");
-//   }
-//   if (env_->isQualityCamera2Partfaulty())
-//   {
-//     ROS_WARN_STREAM("Part is faulty");
-//     arm2_->dropInTrash();
-//     updatePickPoseFromBin((*po2_it));
-//     --po2_it;
-//   }
-//   else
-//   {
-//     arm2_->deliverPart((*po2_it)->getEndPose());
-//   }
-//   env_->setSeeQualityCamera2(false);
-//    }
-//  }
-//   }
-//   arm2_->SendRobotHome();
-
-//   auto arm1OrderParts = env_->getArm1OrderParts();  // std::vector<std::map<std::string, std::vector<OrderPart* > >
-//   >* for (auto o1_vec_it = arm1OrderParts->begin(); o1_vec_it != arm1OrderParts->end(); ++o1_vec_it)
-//   {
-//  for (auto o1_map_it = o1_vec_it->begin(); o1_map_it != o1_vec_it->end(); ++o1_map_it)
-//  {
-//    for (auto o1_it = o1_map_it->second.begin(); o1_it != o1_map_it->second.end(); ++o1_it)
-//    {
-//   ROS_INFO_STREAM("<<< Order Arm1 >>>");
-//   arm1_->pickPart((*o1_it)->getCurrentPose());
-//   // arm1.flipPart((*o1_it));
-//   arm1_->GoToQualityCameraFromBin();
-//   env_->setSeeQualityCamera1(true);
-//   while (not env_->isQuality1Called())
-//   {
-//     ros::Duration(0.1).sleep();
-//     ROS_WARN_STREAM("Waiting for Quality Camera 1 to be called");
-//   }
-//   if (env_->isQualityCamera1Partfaulty())
-//   {
-//     ROS_WARN_STREAM("Part is faulty");
-//     arm1_->dropInTrash();
-//     updatePickPoseFromBin((*o1_it));
-//     --o1_it;
-//   }
-//   else
-//   {
-//     ROS_INFO_STREAM("Part is not faulty");
-//     ROS_INFO_STREAM("Dropping in AGV");
-//     arm1_->deliverPart((*o1_it)->getEndPose());
-//     // if()
-//     // removeItemFromOrderPart((*o1_it));
-//     // deleteTheOrderPart((*o1_it));
-//   }
-//    }
-//  }
-//   }
-
-//   auto arm2OrderParts = env_->getArm2OrderParts();  // std::vector<std::map<std::string, std::vector<OrderPart* > >
-//   >*
-
-//   for (auto o2_vec_it = arm2OrderParts->begin(); o2_vec_it != arm2OrderParts->end(); ++o2_vec_it)
-//   {
-//  for (auto o2_map_it = o2_vec_it->begin(); o2_map_it != o2_vec_it->end(); ++o2_map_it)
-//  {
-//    for (auto o2_it = o2_map_it->second.begin(); o2_it != o2_map_it->second.end(); ++o2_it)
-//    {
-//   ROS_INFO_STREAM("<<< Order Arm2 >>>");
-//   arm2_->pickPart((*o2_it)->getCurrentPose());
-//   // arm1.flipPart((*o1_it));
-//   arm2_->GoToQualityCameraFromBin();
-//   env_->setSeeQualityCamera2(true);
-//   while (not env_->isQuality2Called())
-//   {
-//     ros::Duration(0.1).sleep();
-//     ROS_WARN_STREAM("Waiting for Quality Camera 2 to be called");
-//   }
-//   if (env_->isQualityCamera1Partfaulty())
-//   {
-//     ROS_WARN_STREAM("Part is faulty");
-//     arm2_->dropInTrash();
-//     updatePickPoseFromBin((*o2_it));
-//     --o2_it;
-//   }
-//   else
-//   {
-//     ROS_INFO_STREAM("Part is not faulty");
-//     ROS_INFO_STREAM("Dropping in AGV");
-//     arm2_->deliverPart((*o2_it)->getEndPose());
-//     // if()
-//     // removeItemFromOrderPart((*o1_it));
-//     // deleteTheOrderPart((*o1_it));
-//   }
-//    }
-//  }
-//   }
-// }
 
 bool DynamicPlanner::isPoseSame(geometry_msgs::Pose tray_pose, geometry_msgs::Pose order_pose)
 {
@@ -341,17 +145,18 @@ void DynamicPlanner::dynamicPlanningforArm1()
 	// make sure this runs only after planner is completed
 	// ie. when new order comes, we are clearing the priortiy queue. So we will have to wait till we re-populate it.
 	// planner does that. so wait!!
-	ROS_WARN_STREAM("<<<<<In dynamicPlanningforArm1: 1>>>>>");
+
 	auto arm1_pq = (*(env_->getPriorityQueue()))["agv1"];
 	auto arm1_ = exe_.getArm1Object();
-	int previousShipmentId = arm1_pq.top()->getShipmentId();
-	ROS_WARN_STREAM("<<<<<In dynamicPlanningforArm1:  2 >>>>>");
-	while (!arm1_pq.empty())
+	int previousShipmentId = arm1_pq->top()->getShipmentId();
+	while (!arm1_pq->empty())
 	{	
-		arm1_pq.printPq();
-		auto order_part = arm1_pq.top();
 
-		arm1_pq.pop();
+//		arm1_pq.printPq();
+		ROS_INFO_STREAM("Arm1 : " << arm1_pq->top()->getPartType() << "  Priority Queue size : "<<arm1_pq->getpq()->size());
+		auto order_part = arm1_pq->top();
+
+		arm1_pq->pop();
 
 
 		// check pick up location for part
@@ -361,10 +166,14 @@ void DynamicPlanner::dynamicPlanningforArm1()
 
 		if (retVal == 0)
 		{  // pick up from bin
-			bool delivered = completeSinglePartOrder(arm1_, order_part);
+//			ROS_INFO_STREAM("Arm1 : " << order_part->getPartType() <<"removing from PQ1");
+
+			delivered = completeSinglePartOrder(arm1_, order_part);
+//			delivered =true;
 		}
 		else if (retVal == 1)
 		{  // no action
+			ROS_INFO_STREAM("Arm1 : " << order_part->getPartType() <<"removing from PQ1 and adding to PQ2");
 			continue;
 		}
 		else if (retVal == 2)
@@ -379,22 +188,18 @@ void DynamicPlanner::dynamicPlanningforArm1()
 				auto arm1_pck_lctn = (*(env_->getPickupLocations()))["agv1"][order_part->getPartType()];
 
 				arm1_->pickPartFromBelt(arm1_pck_lctn);
-				bool delivered = completeSinglePartOrder(arm1_,order_part);
+				delivered = completeSinglePartOrder(arm1_,order_part);
+//				delivered =true;
 			}
 		}
 
 		if (!delivered)
 		{
-			arm1_pq.push(order_part);
+			arm1_pq->push(order_part);
 		}
 		else
 		{
 			(*(env_->getCompletedShipment()))[order_part->getAgvId()].push_back(order_part);
-		}
-
-		if (isShipmentofTrayChecked("arm1"))
-		{
-			exe_.SendAGV1();
 		}
 	}
 }
@@ -405,18 +210,17 @@ void DynamicPlanner::dynamicPlanningforArm2()
 	// make sure this runs only after planner is completed
 	// ie. when new order comes, we are clearing the priortiy queue. So we will have to wait till we re-populate it.
 	// planner does that. so wait!!
-	ROS_WARN_STREAM("<<<<<In dynamicPlanningforArm2 :1 >>>>>");
 	auto arm2_pq = (*(env_->getPriorityQueue()))["agv2"];
 	auto arm2_ = exe_.getArm2Object();
-	int previousShipmentId = arm2_pq.top()->getShipmentId();
-	ROS_WARN_STREAM("<<<<<In dynamicPlanningforArm2 :2 >>>>>");
+	int previousShipmentId = arm2_pq->top()->getShipmentId();
 
-	while (!arm2_pq.empty())
+	while (!arm2_pq->empty())
 	{
-		arm2_pq.printPq();
-		auto order_part = arm2_pq.top();
+//		arm2_pq.printPq();
+		ROS_INFO_STREAM("Arm2 : " << arm2_pq->top()->getPartType() << "  Priority Queue size : "<<arm2_pq->getpq()->size());
+		auto order_part = arm2_pq->top();
 
-		arm2_pq.pop();
+		arm2_pq->pop();
 
 		bool delivered = false;
 
@@ -425,10 +229,13 @@ void DynamicPlanner::dynamicPlanningforArm2()
 
 		if (retVal == 0)
 		{ // pick up from bin
-			bool delivered = completeSinglePartOrder(arm2_, order_part);
+			delivered = completeSinglePartOrder(arm2_, order_part);
+			ROS_INFO_STREAM("Arm2 : " << order_part->getPartType() <<"removing from PQ2");
+//			delivered =true;
 		}
 		else if (retVal == 1)
 		{ // no action
+			ROS_INFO_STREAM("Arm2 : " << order_part->getPartType() <<"removing from PQ2 and adding to PQ1");
 			continue;
 		}
 		else if (retVal == 2)
@@ -443,22 +250,18 @@ void DynamicPlanner::dynamicPlanningforArm2()
 				auto arm2_pck_lctn = (*(env_->getPickupLocations()))["agv2"][order_part->getPartType()];
 
 				arm2_->pickPartFromBelt(arm2_pck_lctn);
-				bool delivered = completeSinglePartOrder(arm2_, order_part);
+				delivered = completeSinglePartOrder(arm2_, order_part);
+//				delivered =true;
 			}
 		}
 
 		if (!delivered)
 		{
-			arm2_pq.push(order_part);
+			arm2_pq->push(order_part);
 		}
 		else
 		{
 			(*(env_->getCompletedShipment()))[order_part->getAgvId()].push_back(order_part);
-		}
-
-		if (isShipmentofTrayChecked("arm2"))
-		{
-			exe_.SendAGV2();
 		}
 	}
 }
@@ -480,27 +283,27 @@ int DynamicPlanner::updatePickupLocation(OrderPart* part)
 	// prioiry if not available  : reduce the priority to minimum  in your queue : push it to list of unavailable parts
 
 	std::map<std::string, std::vector<geometry_msgs::Pose>>* binParts = env_->getSortedBinParts();
-
-	ROS_INFO_STREAM("<<<Updating Pick up Location>>>");
-	ROS_INFO_STREAM("<<<Reducing priority of the Conveyer parts with unknown Pick up Location");
+//
+//	ROS_INFO_STREAM("<<<Updating Pick up Location>>>");
+//	ROS_INFO_STREAM("<<<Reducing priority of the Conveyer parts with unknown Pick up Location");
 
 	if (!part->isOfHighestPriority())
-	{  // if higest priority belt trigger will change it
+	{  // if highest priority belt trigger will change it
 		std::string part_type = part->getPartType();
 
 		// first check if part_type is in any of the bins (NA NR)
 		if (!binParts->count(part_type))
 		{
-			ROS_INFO_STREAM("Part is not avaialble in any bins....so picking up from conveyor belt!!!");
+//			ROS_INFO_STREAM("Part is not available in any bins....so pushing back to prioroty queue with lowest prioiry!!!");
 			part->setLowestPriority();           // set lowest priority :INT_MAX
 			part->setStatic(false);              // make it non-static for as part of conveyor part
 			env_->pushToUnavailableParts(part);  // set
-			(*(env_->getPriorityQueue()))[part->getAgvId()].push(part);
+			(*(env_->getPriorityQueue()))[part->getAgvId()]->push(part);
 			return 2;
 		}
 		else
 		{
-			// iterate and see if any binpart is reachable
+			// iterate and see if any bin part is reachable
 			for (auto pose_it = (*binParts)[part_type].begin(); pose_it != (*binParts)[part_type].end(); ++pose_it)
 			{
 				// check if any part is reachable
@@ -509,6 +312,7 @@ int DynamicPlanner::updatePickupLocation(OrderPart* part)
 					if (pose_it->position.y >= 0)
 					{
 						part->setCurrentPose(*pose_it);
+						ROS_INFO_STREAM("Pick Up Location" <<pose_it->position.x <<", "<<pose_it->position.y<<", "<<pose_it->position.z);
 						return 0;
 					}
 				}
@@ -517,6 +321,7 @@ int DynamicPlanner::updatePickupLocation(OrderPart* part)
 					if (pose_it->position.y <= 0)
 					{
 						part->setCurrentPose(*pose_it);
+						ROS_INFO_STREAM("Pick Up Location" <<pose_it->position.x <<", "<<pose_it->position.y<<", "<<pose_it->position.z);
 						return 0;
 					}
 				}
@@ -550,8 +355,8 @@ int DynamicPlanner::updatePickupLocation(OrderPart* part)
 				part->addPriority(4);
 			}
 			// add them back to respective pqs
-			(*(env_->getPriorityQueue()))[part->getAgvId()].push(part);
-			(*(env_->getPriorityQueue()))[part_copy->getAgvId()].push(part_copy);
+			(*(env_->getPriorityQueue()))[part->getAgvId()]->push(part);
+			(*(env_->getPriorityQueue()))[part_copy->getAgvId()]->push(part_copy);
 			return 1;  // pick later
 		}
 	}
@@ -572,9 +377,9 @@ bool DynamicPlanner::completeSinglePartOrder(RobotController* arm, OrderPart *or
 		// Change Orientation to Down Side // TODO check this function
 	}
 	arm->GoToQualityCamera(); // TODO Perfect This function
-	arm->dropInAGV(); // TODO Perfect This function
+	arm->dropPart(order->getEndPose()); // TODO Perfect This function
 
-	env_->setQualityCameraRequired(order->getAgvId(), true);
+	env_->setQualityCameraRequired(order->getAgvId(), true); // TODO implement inverse method of continuos input
 
 	while(!env_->isQualityCameraCalled(order->getAgvId())) {
 		ros::Duration(0.02).sleep();

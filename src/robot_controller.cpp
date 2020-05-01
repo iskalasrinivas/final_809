@@ -348,6 +348,7 @@ void RobotController::dropInTrash() {
 }
 
 
+
 void RobotController::GoToQualityCamera() {
 	//	ros::AsyncSpinner spinner(4);
 	//	robot_move_group_.setPoseTarget(quality_static_pose);

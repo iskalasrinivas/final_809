@@ -45,7 +45,7 @@
 #include <limits.h>
 
 OrderPart::OrderPart(std::string ship_type, std::string aid, std::string part_type, geometry_msgs::Pose t_pose) : 
-shipment_type(ship_type), agv_id(aid), 
+shipment_type(ship_type), agv_id(aid), tobepickedbyotherhand_(false),
 part_type_(part_type), tray_pose_(t_pose), tfListener(tfBuffer), flip_part(false), static_part(true)
 {
  ros::AsyncSpinner async_spinner(4);
@@ -60,7 +60,8 @@ part_type_(part_type), tray_pose_(t_pose), tfListener(tfBuffer), flip_part(false
 tf2_ros::Buffer OrderPart::tfBuffer {};
 int OrderPart::count{0};
 
-OrderPart::OrderPart(): tfListener(tfBuffer), flip_part(false), static_part(false), priority(INT_MAX), ship_id(0), in_transit_(false){}
+OrderPart::OrderPart(): tfListener(tfBuffer), flip_part(false), static_part(false),
+		priority(INT_MAX), ship_id(0), in_transit_(false), tobepickedbyotherhand_(false){}
 
 OrderPart::~OrderPart() {}
 
@@ -226,4 +227,12 @@ bool OrderPart::getInTransit() {
 
 void OrderPart::setInTransit(bool cond) {
 	in_transit_ = cond;
+}
+
+bool OrderPart::hasToBePickedbyOtherHand(){
+	return tobepickedbyotherhand_;
+}
+
+void OrderPart::setPickedbyOtherHand(bool cond) {
+	tobepickedbyotherhand_ = cond;
 }

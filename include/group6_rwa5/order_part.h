@@ -55,6 +55,7 @@ private:
  std::string shipment_type;
  std::string agv_id;
  bool in_transit_;
+ bool tobepickedbyotherhand_;
  int ship_id;
  geometry_msgs::Pose tray_pose_;
  geometry_msgs::Pose end_pose_;
@@ -91,8 +92,10 @@ public:
  void setStatic(bool);
  void addPriority(int);
  void setInTransit(bool);
+ void setPickedbyOtherHand(bool);
  // Getters
  bool getInTransit();
+ bool hasToBePickedbyOtherHand();
  std::string getPartType() const;
  geometry_msgs::Pose getEndPose() const;
  geometry_msgs::Pose getTrayPose() const;

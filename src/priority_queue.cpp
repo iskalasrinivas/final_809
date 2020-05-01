@@ -104,3 +104,7 @@ void PriorityQueue::printPq(){
 std::vector<OrderPart*>* PriorityQueue::getpq() {
  return &priority_queue_;
 }
+
+int PriorityQueue::size() {
+	return priority_queue_.size();
+}

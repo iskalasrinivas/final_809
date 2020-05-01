@@ -15,7 +15,7 @@ SensorManager::SensorManager(Environment * env):
  lcamera_trigger("/ariac/logical_camera_10", env_, false, false, false, true),
  lcamera_belt2("/ariac/logical_camera_11", env_, true, false, false, false),
  qcamera_agv1("/ariac/quality_control_sensor_1","agv1", env_),
- qcamera_agv2("/ariac/quality_control_sensor_2","agv1", env_)
+ qcamera_agv2("/ariac/quality_control_sensor_2","agv2", env_)
 {
 async_spinner.start();
 }

@@ -70,6 +70,7 @@ private:
     Executor exe_;
     Environment* env_;
  ros::Subscriber dplanner_sub_;
+ std::vector<std::vector<OrderPart*>>::iterator current_shipment_it;
 
 public:
     DynamicPlanner(Environment*);
@@ -97,7 +98,7 @@ public:
 
  void dynamicPlanningforArm1();
  
- int updatePickupLocation(OrderPart*);
+ int updatePickupLocation(std::string, OrderPart*);
 
  void dynamicPlanningforArm2();
 
@@ -105,11 +106,15 @@ public:
 
  void p();
 
- bool completeSinglePartOrder(RobotController*, OrderPart *);
+ bool completeSinglePartOrder(RobotController*, OrderPart *, bool);
 
  bool isShipmentofTrayChecked(std::string agv_id);
 
+ bool isShipmentComplete(std::string, std::vector<std::vector<OrderPart*>>::iterator);
 
+ bool isitCurrentShipment();
+
+ void removeUnwantedPartfromTray(std::string, std::vector<std::vector<OrderPart*>>::iterator);
  // void flipPart(OrderPart * oPart);
 };
 

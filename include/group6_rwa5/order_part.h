@@ -54,6 +54,7 @@ private:
  std::string part_type_;
  std::string shipment_type;
  std::string agv_id;
+ bool in_transit_;
  int ship_id;
  geometry_msgs::Pose tray_pose_;
  geometry_msgs::Pose end_pose_;
@@ -89,8 +90,9 @@ public:
  void setPriority(int);
  void setStatic(bool);
  void addPriority(int);
-
+ void setInTransit(bool);
  // Getters
+ bool getInTransit();
  std::string getPartType() const;
  geometry_msgs::Pose getEndPose() const;
  geometry_msgs::Pose getTrayPose() const;

@@ -59,6 +59,7 @@ public:
     void clear();
     std::vector<OrderPart*>* getpq();
     void printPq();
+    int size();
 
 private:
 std::vector<OrderPart*> priority_queue_;

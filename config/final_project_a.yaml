@@ -27,7 +27,7 @@ orders:
   order_0:
     announcement_condition: time
     announcement_condition_value: 0.0
-    destinations: [any, agv2]
+    destinations: [agv1, agv2]
     shipment_count: 2
     products:
       part_0:
@@ -97,9 +97,9 @@ belt_models:
         xyz: [0.0, 0.0, 0.1]
         rpy: [0, 0, 'pi/2']
 
-sensor_blackout:
-  product_count: 2
-  duration: 50
+# sensor_blackout:
+#   product_count: 2
+#   duration: 50
 
 drops:
   drop_regions:

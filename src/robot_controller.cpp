@@ -116,6 +116,13 @@ void RobotController::initialSequence(){
 	face_right_orientation_.z = robot_tf_transform_.getRotation().z();
 	face_right_orientation_.w = robot_tf_transform_.getRotation().w();
 
+	GoToJointState(flip_test_joint_position);
+		lookupTransform();
+	    face_test_orientation_.x = robot_tf_transform_.getRotation().x();
+		face_test_orientation_.y = robot_tf_transform_.getRotation().y();
+		face_test_orientation_.z = robot_tf_transform_.getRotation().z();
+		face_test_orientation_.w = robot_tf_transform_.getRotation().w();
+
 	SendRobotHome();
 	postInitialisation();
 	ros::Duration(0.1).sleep();
@@ -135,10 +142,10 @@ void RobotController::lookupTransform() {
 }
 
 bool RobotController::Planner() {
-	ROS_INFO_STREAM("Planning started...");
+//	ROS_INFO_STREAM("Planning started...");
 	if (robot_move_group_.plan(robot_planner_) == moveit::planning_interface::MoveItErrorCode::SUCCESS) {
 		plan_success_ = true;
-		ROS_INFO_STREAM("Planner succeeded!");
+//		ROS_INFO_STREAM("Planner succeeded!");
 	}
 	else {
 		plan_success_ = false;
@@ -156,6 +163,7 @@ void RobotController::chooseArm() {
 		//		belt_joint_pose_ = { -0.3, 0, -0.7, 1.65, -2.5, -1.59, 0.0};
 		belt_joint_pose_ = { 0.7,-0.9, -0.05,0.2 , -1.65, -1.59, 0.0};
 		quality_cam_joint_position_ = { 1.1, 1.4, -0.5, 1.25, -2.35, -1.59, 0.0  };
+		flip_test_joint_position = {0.5, 0, -2.3, -2.1, -2.0, 0, 0.0};
 
 		trash_bin_joint_position_ = {1.18, 2.01, -1.38, 2.26, -2.3, -1.59, 0.0};
 		// home_joint_ff_arm = home_joint_fr_arm;
@@ -179,9 +187,11 @@ void RobotController::chooseArm() {
 
 	} else if (arm_id_ == "arm2") {
 		home_joint_pose_ = {-0.9, -3.14, -2.0, 2.14, -1.7, -1.59, 0.0};
-		home_joint_fl_arm = {-0.9, -3.14, -2.0, 2.14, -1.7, -3.14, 0.0};
+		home_joint_fl_arm = {	};
 		home_joint_fr_arm = {-0.9, -3.14, -2.0, 2.14, -1.7, 0, 0.0};
-		quality_cam_joint_position_ = { -1.2, -1.68, -0.38, 1.01,-2.2, -1.51, 0.0  };
+//		quality_cam_joint_position_ = { -1.2, -1.68, -0.38, 1.01,-2.2, -1.51, 0.0  };
+		quality_cam_joint_position_ = { -0.9, -1.68, -0.38, 1.01,-2.2, -1.51, 0.0  };
+		flip_test_joint_position = {-0.9, 0, -2.3, -2.1, -2.0, 0, 0.0};
 
 		trash_bin_joint_position_ = { -1.18, -2.76, -2.08, 2.71, 3.29, -1.51, 0.0 };
 		// home_joint_ff_arm = home_joint_fl_arm;
@@ -258,11 +268,11 @@ void RobotController::GoToTarget(const geometry_msgs::Pose &pose) {
 	ros::Duration(interval).sleep();
 	if (this->Planner()) {
 		ros::Duration(interval).sleep();
-		ROS_INFO_STREAM("Point success");
+//		ROS_INFO_STREAM("Point success");
 		robot_move_group_.move();
 		ros::Duration(interval).sleep();
 	}
-	ROS_INFO_STREAM("Point reached...");
+//	ROS_INFO_STREAM("Point reached...");
 }
 
 void RobotController::GripperToggle(const bool &state) {
@@ -354,11 +364,6 @@ void RobotController::GoToQualityCamera() {
 	setAtQualitySensor();
 }
 
-// TODO @ Sanket Test Flip
-void RobotController::pickFlipPart(const geometry_msgs::Pose &part_pose) {
-
-}
-
 void RobotController::pickPartFromAGV(const geometry_msgs::Pose &part_pose) {
 	pickPart(part_pose, 0.750);
 }
@@ -420,46 +425,132 @@ void RobotController::dropPart(const geometry_msgs::Pose &part_pose) {
 	ros::Duration(interval).sleep();
 }
 
+void RobotController::GoToTargetForFlip(const geometry_msgs::Pose &pose){
+	ros::AsyncSpinner spinner(4);
+	robot_move_group_.setPoseTarget(pose);
+	spinner.start();
+	ros::Duration(interval).sleep();
+	if (this->Planner()) {
+		ros::Duration(interval).sleep();
+		ROS_INFO_STREAM("Point success");
+		robot_move_group_.move();
+		ros::Duration(interval).sleep();
+	}
+	ROS_INFO_STREAM("Point reached...");
+}
+
+
 void RobotController::flipPart(OrderPart *order_)
 {
 	if (order_->isFlipRequired())
 	{
+		ROS_INFO_STREAM("in flip part function.");
 		// logic to flip the part
 		// define pose
 		// move close to the bin surface?
-
 		// roll the object
-		tf2::Quaternion myQuaternion;
+		//tf2::Quaternion myQuaternion;
 		auto flip_intermediate_pose_ = getCurrentPose();  // get the current pose of the robot ee_link
-		myQuaternion.setRPY(1.558344, 0, 0);              // rotate about roll axis by 90deg
-		flip_intermediate_pose_.orientation.x = myQuaternion.x();
-		flip_intermediate_pose_.orientation.y = myQuaternion.y();
-		flip_intermediate_pose_.orientation.z = myQuaternion.z();
-		flip_intermediate_pose_.orientation.w = myQuaternion.w();
-
-		GoToTarget(flip_intermediate_pose_);  // go to this pose
-		GripperToggle(false);
-		ros::Duration(0.2).sleep();
-
+		//myQuaternion.setRPY(1.558344, 0, 0);              // rotate about roll axis by 90deg
+		flip_intermediate_pose_.position.x += 0.2;
 		flip_intermediate_pose_.position.z += 0.2;
-		flip_intermediate_pose_.position.y -= 0.4;
-		GoToTarget(flip_intermediate_pose_);
 
-		flip_intermediate_pose_ = getCurrentPose();
-		myQuaternion.setRPY(3.14, 0, 0);  // rotate about roll axis by 180deg
-		flip_intermediate_pose_.orientation.x = myQuaternion.x();
-		flip_intermediate_pose_.orientation.y = myQuaternion.y();
-		flip_intermediate_pose_.orientation.z = myQuaternion.z();
-		flip_intermediate_pose_.orientation.w = myQuaternion.w();
-		GoToTarget(flip_intermediate_pose_);
-		ros::Duration(0.2).sleep();
+
+		GoToTargetForFlip(flip_intermediate_pose_);  // go to this pose
+
+		flip_intermediate_pose_.orientation = face_right_orientation_;
+		GoToTargetForFlip(flip_intermediate_pose_);  // go to this pose
+
+		flip_intermediate_pose_.position.z -= 0.3;
+		GoToTargetForFlip(flip_intermediate_pose_);  // go to this pose
+		ros::Duration(0.4).sleep();
+
+
+
+		ROS_INFO_STREAM("gripper deactivating.");
+		GripperToggle(false);
+		ros::Duration(1.0).sleep();
+
+		flip_intermediate_pose_.position.z += 0.4;
+		flip_intermediate_pose_.position.y += 0.1;
+		GoToTargetForFlip(flip_intermediate_pose_);
+		flip_intermediate_pose_.position.y -= 0.4;
+		GoToTargetForFlip(flip_intermediate_pose_);
+
+		ROS_INFO_STREAM("going to left orientation.");
+		// flip_intermediate_pose_.position.y += 0.35;
+		// flip_intermediate_pose_.position.z -= 0.3;
+		//flip_intermediate_pose_.orientation = face_test_orientation_;
+		//GoToTargetForFlip(flip_intermediate_pose_);
+
+		ROS_INFO_STREAM(flip_intermediate_pose_.position.y);
+		flip_test_joint_position = {flip_intermediate_pose_.position.y + 0.7, 0, -2.3, -2.1, -2.0, 0, 0.0};
+		GoToJointState(flip_test_joint_position);
+		flip_intermediate_pose_.orientation = face_test_orientation_;
+
+		for(auto x = 0.0; x < 0.2; x += 0.1){
+		 flip_intermediate_pose_.position.y += 0.1;
+	     flip_intermediate_pose_.position.z -= 0.2;
+		 GoToTargetForFlip(flip_intermediate_pose_);
+		 ROS_INFO_STREAM("inside for loop: " << x);
+	    }
+
+        ROS_INFO_STREAM("outside for loop! ");
+		flip_intermediate_pose_.position.y += 0.005;
+		GoToTargetForFlip(flip_intermediate_pose_);
+		ros::Duration(0.1).sleep();
+		ROS_INFO_STREAM("attaching object after flipping.");
+		GripperToggle(true);
+		ros::Duration(0.5).sleep();
 
 		// after flipping the part set flip part = true
 		// order_->setFlipPart();
 		// get pose from logical camera
-		pickFlipPart(flip_intermediate_pose_);
+		//pickFlipPart(flip_intermediate_pose_);
 	}
 }
+
+
+//void RobotController::flipPart(OrderPart *order_)
+//{
+//	if (order_->isFlipRequired())
+//	{
+//		// logic to flip the part
+//		// define pose
+//		// move close to the bin surface?
+//
+//		// roll the object
+//		tf2::Quaternion myQuaternion;
+//		auto flip_intermediate_pose_ = getCurrentPose();  // get the current pose of the robot ee_link
+//		myQuaternion.setRPY(1.558344, 0, 0);              // rotate about roll axis by 90deg
+//		flip_intermediate_pose_.orientation.x = myQuaternion.x();
+//		flip_intermediate_pose_.orientation.y = myQuaternion.y();
+//		flip_intermediate_pose_.orientation.z = myQuaternion.z();
+//		flip_intermediate_pose_.orientation.w = myQuaternion.w();
+//
+//		GoToTarget(flip_intermediate_pose_);  // go to this pose
+//		GripperToggle(false);
+//		ros::Duration(0.2).sleep();
+//
+//		flip_intermediate_pose_.position.z += 0.2;
+//		flip_intermediate_pose_.position.y -= 0.4;
+//		GoToTarget(flip_intermediate_pose_);
+//
+//		flip_intermediate_pose_ = getCurrentPose();
+//		myQuaternion.setRPY(3.14, 0, 0);  // rotate about roll axis by 180deg
+//		flip_intermediate_pose_.orientation.x = myQuaternion.x();
+//		flip_intermediate_pose_.orientation.y = myQuaternion.y();
+//		flip_intermediate_pose_.orientation.z = myQuaternion.z();
+//		flip_intermediate_pose_.orientation.w = myQuaternion.w();
+//		GoToTarget(flip_intermediate_pose_);
+//		ros::Duration(0.2).sleep();
+//
+//		// after flipping the part set flip part = true
+//		// order_->setFlipPart();
+//		// get pose from logical camera
+//		pickFlipPart(flip_intermediate_pose_);
+//	}
+//}
 
 void RobotController::collisionAvoidance()
 {
@@ -506,7 +597,7 @@ void RobotController::collisionAvoidance()
 	// visual_tools.trigger();
 }
 
-void RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
+bool RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
 {
 	//	while(part_pose == nullptr) {
 	////		ROS_WARN_STREAM("Waiting for part come under belt camera for pickup...");
@@ -520,7 +611,7 @@ void RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
 	double object_thickness = std::fabs(part_pose->position.z - belt_height)+0.025; //half odf the object thickness
 	geometry_msgs::Pose arrival_pose = *part_pose;
 	arrival_pose.position.z = part_pose->position.z + 1.1 * object_thickness;
-	arrival_pose.position.y -= 1.4*belt_speed;
+	arrival_pose.position.y -= 1.5*belt_speed;
 	GoToTarget(arrival_pose);
 
 	ROS_WARN_STREAM("Gripper toggled");
@@ -535,8 +626,7 @@ void RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
 		picking_pose.position.y = part_pose->position.y-belt_speed;
 		GoToTarget(picking_pose);
 		++count;
-		while (!isPartAttached() or count <= 3)
-		{
+		while (!isPartAttached() and count <= 2) {
 			ROS_WARN_STREAM("Part not attached");
 			picking_pose.position.z = part_pose->position.z + object_thickness + 0.02;
 			picking_pose.position.y =  part_pose->position.y - belt_speed;
@@ -551,5 +641,6 @@ void RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
 	ROS_INFO_STREAM("Part attached");
 	picking_pose.position.z += 0.2;
 	GoToTarget(picking_pose);
-	}
+	return true;
+	} else {return false;}
 }

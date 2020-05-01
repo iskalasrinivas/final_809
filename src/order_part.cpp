@@ -51,16 +51,16 @@ part_type_(part_type), tray_pose_(t_pose), tfListener(tfBuffer), flip_part(false
  ros::AsyncSpinner async_spinner(4);
  ROS_INFO_STREAM("New order object Created");
  async_spinner.start();
+ in_transit_ = false; // setting intransit false for default case
  // ros::Duration(1.0).sleep();
  setShipmentId();
-
  worldTransformation();
 }
 
 tf2_ros::Buffer OrderPart::tfBuffer {};
 int OrderPart::count{0};
 
-OrderPart::OrderPart(): tfListener(tfBuffer), flip_part(false), static_part(false), priority(INT_MAX), ship_id(0){}
+OrderPart::OrderPart(): tfListener(tfBuffer), flip_part(false), static_part(false), priority(INT_MAX), ship_id(0), in_transit_(false){}
 
 OrderPart::~OrderPart() {}
 
@@ -218,4 +218,12 @@ bool OrderPart::isOfHighestPriority() {
 
 bool OrderPart::isOfLowestPriority() {
  return (priority == std::numeric_limits<int>::max());
+}
+
+bool OrderPart::getInTransit() {
+	return in_transit_;
+}
+
+void OrderPart::setInTransit(bool cond) {
+	in_transit_ = cond;
 }

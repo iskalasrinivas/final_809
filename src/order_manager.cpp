@@ -81,18 +81,35 @@ void OrderManager::setOrderParts(const osrf_gear::Order::ConstPtr &order_msg)
 	auto shipments = order_msg->shipments;
 	auto pq = environment->getPriorityQueue();
 	auto vector_ofshipments_withANY_tag = environment->getShipmentsOfAnyTagId();
-	for (const auto &shipment : shipments)
-	{
+	std::vector<std::vector<OrderPart*>>* shipment_vector_ = environment->getshipmentVector();
+	std::vector<std::vector<OrderPart*>>::iterator shipment_it = shipment_vector_->begin();
+	for (const auto &shipment : shipments){
 		bool is_shipment_any =false;
 		std::map<std::string, std::vector<OrderPart *>> shipment_Parts;
 		auto shipment_type = shipment.shipment_type;
 		auto agv_id = shipment.agv_id;
 		auto products = shipment.products;
+		std::vector<OrderPart*> current_shipment;
+		current_shipment.clear();
 		std::vector <OrderPart*> one_shipment_with_any;
-		for (const auto &product : products)
-		{
+		one_shipment_with_any.clear();
+		for (const auto &product : products) {
 			std::string part_type = product.type;
 			OrderPart *order_part = new OrderPart(shipment_type, agv_id, part_type, product.pose);
+			tf::Quaternion q(
+					product.pose.orientation.x,
+					product.pose.orientation.y,
+					product.pose.orientation.z,
+					product.pose.orientation.w);
+			tf::Matrix3x3 m(q);
+			double roll, pitch, yaw;
+			m.getRPY(roll, pitch, yaw);
+			ROS_INFO_STREAM("roll is: " << roll);
+			if(roll + 3.14159 <= 0.01 && part_type == "pulley_part"){
+				order_part->setFlipPart(true);
+			}
+			ROS_INFO_STREAM(order_part->getPartType() << " needs to be flipped: " << order_part->isFlipRequired());
+			current_shipment.push_back(order_part);
 			if(order_part->getAgvId() != "any") {
 				(*pq)[order_part->getAgvId()]->push(order_part);  // agv1 , agv2, any
 			} else {
@@ -115,6 +132,8 @@ void OrderManager::setOrderParts(const osrf_gear::Order::ConstPtr &order_msg)
 			vector_ofshipments_withANY_tag->push_back(one_shipment_with_any);
 
 		}
+		shipment_vector_->push_back(current_shipment);
+
 	}
 
 	ROS_INFO_STREAM("<<<<<Finished setting order parts>>>>>" );
@@ -124,14 +143,14 @@ void OrderManager::setOrderParts(const osrf_gear::Order::ConstPtr &order_msg)
 void OrderManager::setArmForAnyParts()
 {
 	ROS_INFO_STREAM("<<<<< Smart Decision for ANY tagged shipment>>>>>" << std::endl);
-	int agv1_score = 0;
-	int agv2_score = 0;
+
 	ros::Duration(0.1).sleep();
 	std::map<std::string, PriorityQueue*>* pq = environment->getPriorityQueue();
 	PriorityQueue* pq_agv1 = (*pq)["agv1"];
 	PriorityQueue* pq_agv2 = (*pq)["agv2"];
 
 	std::vector<std::vector <OrderPart*>> * shipments_ANY = environment->getShipmentsOfAnyTagId();
+	std::vector<std::vector<OrderPart*>>* shipment_vector_ = environment->getshipmentVector();
 
 	if (shipments_ANY->size() == 0) {
 		return;
@@ -143,8 +162,15 @@ void OrderManager::setArmForAnyParts()
 	std::map<std::string, int> parttype_count_agv2 = arr[1];
 
 	for (auto any_ship_it = shipments_ANY->begin(); any_ship_it != shipments_ANY->end(); ++any_ship_it) {
-		agv1_score = 0;
-		agv2_score = 0;
+		int agv1_score = 0;
+		int agv2_score = 0;
+		for(auto it = shipment_vector_->begin(); it != shipment_vector_->end();++it) {
+			if(it->back()->getAgvId() == "agv1"){
+				agv1_score += it->size();
+			} else if (it->back()->getAgvId() == "agv2"){
+				agv2_score += it->size();
+			}
+		}
 		for(auto part_it = any_ship_it->begin(); part_it != any_ship_it->end(); ++part_it) {
 			auto part_type = (*part_it)->getPartType();
 			if (parttype_count_agv1.count(part_type)) {
@@ -288,6 +314,7 @@ void OrderManager::UpdateUnavailableParts()
 		{
 			if (!binParts->count((*o_it)->getPartType()))
 			{
+				// we are not changing to lowerst prioty here..maybe in dymic planner
 				(*unavailableParts)[agv_id].insert((*o_it));
 			}
 		}

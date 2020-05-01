@@ -5,9 +5,9 @@ Environment::Environment()
 , all_binCamera_called(false)
 , all_trayCamera_called(false)
 , all_qualityCamera_called(false)
-, trayCameraRequired(false)  // Earlier :false
+, trayCameraRequired(true)  // Earlier :false
 , order_manager_status(false)
-, binCameraRequired(false) // Earlier :false
+, binCameraRequired(true) // Earlier :false
 , conveyorTrigger(false)
 {
 	// common trash pose
@@ -334,4 +334,8 @@ std::vector<std::vector <OrderPart*>> * Environment::getShipmentsOfAnyTagId() {
 }
 void Environment::clearANYvector() {
 	shipment_with_ANY_tag.clear();
+}
+
+std::vector<std::vector<OrderPart*>>* Environment::getshipmentVector(){
+	return &shipment_vector_;
 }

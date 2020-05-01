@@ -98,6 +98,8 @@ private:
 	std::vector<double> home_joint_pose_;
 	std::vector<double> quality_cam_joint_position_;
 	std::vector<double> trash_bin_joint_position_;
+	std::vector<double> flip_test_joint_position;
+
 
 	std::vector<double> home_joint_fr_arm;
 	std::vector<double> home_joint_fl_arm;
@@ -121,7 +123,7 @@ private:
 	geometry_msgs::Quaternion face_down_orientation_;
 	geometry_msgs::Quaternion face_left_orientation_;
 	geometry_msgs::Quaternion face_right_orientation_;
-	geometry_msgs::Quaternion face_front_orientation_;
+	geometry_msgs::Quaternion face_test_orientation_;
 	geometry_msgs::Pose agv_position_;
 
 	// geometry_msgs::Pose end_pose_;
@@ -173,8 +175,8 @@ public:
 	void pickPart(const geometry_msgs::Pose&, double);
 	void pickPartFromAGV(const geometry_msgs::Pose&);
 	void pickPartFromBin(const geometry_msgs::Pose&);
-	void pickPartFromBelt(geometry_msgs::Pose*);
-	void pickFlipPart(const geometry_msgs::Pose &);
+	bool pickPartFromBelt(geometry_msgs::Pose*);
+	void GoToTargetForFlip(const geometry_msgs::Pose &pose);
 	void dropPart(const geometry_msgs::Pose &);
 	void dropInAGV();
 

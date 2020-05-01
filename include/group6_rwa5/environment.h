@@ -40,6 +40,7 @@ private:
   std::map<std::string, bool> tray_cam_bool_map_;
   std::map<std::string, bool> quality_cam_bool_map_;
   std::map<std::string, bool> belt_cam_bool_map_;
+  std::vector<std::vector<OrderPart*>> shipment_vector_;
 
   bool all_binCamera_called;
   bool all_trayCamera_called;
@@ -131,6 +132,7 @@ public:
   void ensureAllPartsinBothTraysareUpdated();
   std::vector<std::vector <OrderPart*>> * getShipmentsOfAnyTagId();
   void clearANYvector();
+  std::vector<std::vector<OrderPart*>>* getshipmentVector();
 };
 
 #endif  // GROUP6_RWA4_ENVIRONMENT_H

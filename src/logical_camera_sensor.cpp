@@ -255,6 +255,7 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 		if (bincam_) {
 			if (image_msg->models.size() < 4) {
 				if (image_msg->pose.position.y >= 0) {  // get camera position with respect to world and check it
+
 					environment_->getAvailableBinPosesObject()->addToAvailableBinPosesArm1(cam_name, image_msg->pose);
 				} else if (image_msg->pose.position.y < 0) {
 					environment_->getAvailableBinPosesObject()->addToAvailableBinPosesArm2(cam_name, image_msg->pose);

@@ -220,7 +220,7 @@ void DynamicPlanner::dynamicPlanningforArm1() {
 	while (!arm1_pq->empty()) {
 		//		ROS_INFO_STREAM("Arm1 : " << arm1_pq->top()->getPartType() <<" "<< arm1_pq->top()->getPriority() << ",  Priority Queue size : "<<arm1_pq->getpq()->size());
 		auto order_part = arm1_pq->top();
-		ros::Duration(0.1).sleep();
+		ros::Duration(0.01).sleep();
 
 		arm1_pq->pop();
 
@@ -330,7 +330,7 @@ void DynamicPlanner::dynamicPlanningforArm2() {
 	}
 	int previousShipmentId = shipmnet_it->front()->getShipmentId();
 	while (!arm2_pq->empty()) {
-		ros::Duration(0.1).sleep();
+		ros::Duration(0.01).sleep();
 		//		ROS_WARN_STREAM("Arm2 : " << arm2_pq->top()->getPartType() <<": "<< arm2_pq->top()->getPriority() << ", Priority Queue size : "<<arm2_pq->getpq()->size());
 		auto order_part = arm2_pq->top();
 		arm2_pq->pop();
@@ -440,10 +440,10 @@ int DynamicPlanner::updatePickupLocation(std::string arm, OrderPart* part) {
 
 	env_->ensureAllPartsinAllBinsareUpdated();
 	std::map<std::string, std::vector<geometry_msgs::Pose>>* binParts = env_->getSortedBinParts();
-	for (auto it = binParts->begin(); it != binParts->end();++it) {
-		ROS_WARN_STREAM("Part Type : "<< it->first<< " : " <<it->second.size());
-	}
-	ros::Duration(1.0).sleep();
+//	for (auto it = binParts->begin(); it != binParts->end();++it) {
+//		ROS_WARN_STREAM("Part Type : "<< it->first<< " : " <<it->second.size());
+//	}
+//	ros::Duration(1.0).sleep();
 	if (!part->isOfHighestPriority()) {  // if highest priority belt trigger will change it
 		std::string part_type = part->getPartType();
 
@@ -461,20 +461,20 @@ int DynamicPlanner::updatePickupLocation(std::string arm, OrderPart* part) {
 			// iterate and see if any bin part is reachable
 			for (auto pose_it = (*binParts)[part_type].begin(); pose_it != (*binParts)[part_type].end(); ++pose_it) {
 				// check if any part is reachable
-				ROS_INFO_STREAM("I am here");
+//				ROS_INFO_STREAM("I am here");
 				if (part->getAgvId() == "agv1" or (part->getAgvId() == "agv2" and part->hasToBePickedbyOtherHand())) {
 					if (pose_it->position.y >= 0) {
 						part->setCurrentPose(*pose_it);
-						ros::Duration(0.01).sleep();
-						ROS_INFO_STREAM("Pick Up Location" <<pose_it->position.x <<", "<<pose_it->position.y<<", "<<pose_it->position.z);
+//						ros::Duration(0.01).sleep();
+//						ROS_INFO_STREAM("Pick Up Location" <<pose_it->position.x <<", "<<pose_it->position.y<<", "<<pose_it->position.z);
 						(*binParts)[part_type].erase(pose_it);
 						return 0;
 					}
 				} else {
 					if (pose_it->position.y <= 0 or (part->getAgvId() == "agv1" and part->hasToBePickedbyOtherHand())) {
 						part->setCurrentPose(*pose_it);
-						ros::Duration(0.01).sleep();
-						ROS_INFO_STREAM("Pick Up Location" <<pose_it->position.x <<", "<<pose_it->position.y<<", "<<pose_it->position.z);
+//						ros::Duration(0.01).sleep();
+//						ROS_INFO_STREAM("Pick Up Location" <<pose_it->position.x <<", "<<pose_it->position.y<<", "<<pose_it->position.z);
 						(*binParts)[part_type].erase(pose_it);
 						return 0;
 					}
@@ -487,13 +487,13 @@ int DynamicPlanner::updatePickupLocation(std::string arm, OrderPart* part) {
 				(*binParts)[part_type].pop_back();
 
 				part_copy = new OrderPart();
-				ros::Duration(0.1).sleep();
+//				ros::Duration(0.1).sleep();
 				part_copy->setPartType(part->getPartType());
 				part_copy->setShipmentId(part->getShipmentId());
 				if (arm == "arm1" and part->getAgvId() == "agv1") {
 					part_copy->setAgvId("agv1");
 //					part_copy->setCurrentPose(current_pose);
-					geometry_msgs::Pose end_pose = env_->getAvailableBinPosesObject()->getAvailableBinPoseArm1();
+					geometry_msgs::Pose end_pose = env_->getAvailableBinPosesObject()->getAvailableBinPoseArm2();
 					part_copy->setEndPose(end_pose);
 					part_copy->setShipmentId(part->getShipmentId());
 					part_copy->setPriority(-4);
@@ -506,13 +506,13 @@ int DynamicPlanner::updatePickupLocation(std::string arm, OrderPart* part) {
 					env_->getPriorityQueue()->at("agv2")->push(part_copy);
 //					(*(env_->getPriorityQueue()))[part->getAgvId()]->push(part);
 					(*(env_->getPriorityQueue()))["agv2"]->push(part_copy);
-					ROS_ERROR_STREAM("1Pushing 1 in agv1 :" << (*(env_->getPriorityQueue()))[part->getAgvId()]->size()
-							<<" and 1 in agv2 : " <<(*(env_->getPriorityQueue()))["agv2"]->size()
-							<<" for not reachable part for arm 1 "<< part->getPartType());
+//					ROS_ERROR_STREAM("1Pushing 1 in agv1 :" << (*(env_->getPriorityQueue()))[part->getAgvId()]->size()
+//							<<" and 1 in agv2 : " <<(*(env_->getPriorityQueue()))["agv2"]->size()
+//							<<" for not reachable part for arm 1 "<< part->getPartType());
 				} else if (arm == "arm2" and part->getAgvId() == "agv2"){
 					part_copy->setAgvId("agv2");
 //					part_copy->setCurrentPose(current_pose);
-					geometry_msgs::Pose end_pose = env_->getAvailableBinPosesObject()->getAvailableBinPoseArm2();
+					geometry_msgs::Pose end_pose = env_->getAvailableBinPosesObject()->getAvailableBinPoseArm1();
 					part_copy->setEndPose(end_pose);
 					part_copy->setShipmentId(part->getShipmentId());
 					part_copy->setPriority(-4);
@@ -524,9 +524,9 @@ int DynamicPlanner::updatePickupLocation(std::string arm, OrderPart* part) {
 					env_->getPriorityQueue()->at("agv1")->push(part_copy);
 //					(*(env_->getPriorityQueue()))[part->getAgvId()]->push(part);
 //					(*(env_->getPriorityQueue()))["agv1"]->push(part_copy);
-					ROS_ERROR_STREAM("2Pushing 1 in agv1 : " << (*(env_->getPriorityQueue()))["agv1"]->size()
-							<<" and 1 in agv2 : "<< (*(env_->getPriorityQueue()))[part->getAgvId()]->size()
-							<<" for not reachable part for arm 2 "<< part->getPartType());
+//					ROS_ERROR_STREAM("2Pushing 1 in agv1 : " << (*(env_->getPriorityQueue()))["agv1"]->size()
+//							<<" and 1 in agv2 : "<< (*(env_->getPriorityQueue()))[part->getAgvId()]->size()
+//							<<" for not reachable part for arm 2 "<< part->getPartType());
 				}
 			} else {
 				part->addPriority(1);
@@ -592,12 +592,18 @@ bool DynamicPlanner::completeSinglePartOrder(RobotController* arm, OrderPart *or
 		// logic to return bool upon failure or success
 		return flag;
 	} else {
-		if(arm->getArmName()=="arm1"){
-			order->setEndPose(env_->getAvailableBinPosesObject()->getAvailableBinPoseArm1());
+		if(order->hasToBePickedbyOtherHand()) {
+			arm->pickPartFromBin(order->getCurrentPose());
+			arm->dropPart(order->getEndPose());
+			return true;
 		} else {
+			if(arm->getArmName()=="arm1"){
+				order->setEndPose(env_->getAvailableBinPosesObject()->getAvailableBinPoseArm1());
+			} else {
 			order->setEndPose(env_->getAvailableBinPosesObject()->getAvailableBinPoseArm2());
+			}
+			arm->dropPart(order->getEndPose()); // TODO Perfect This function
 		}
-		arm->dropPart(order->getEndPose()); // TODO Perfect This function
 		return false;
 	}
 }

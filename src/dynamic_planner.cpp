@@ -121,7 +121,7 @@ bool DynamicPlanner::isPoseSame(geometry_msgs::Pose tray_pose, geometry_msgs::Po
 bool DynamicPlanner::isShipmentComplete(std::string agv_id, std::vector<std::vector<OrderPart*>>::iterator shipment_it) {
 
 	std::map<std::string, std::vector<geometry_msgs::Pose>>* tray_parts;
-
+	env_->ensureAllPartsinBothTraysareUpdated();
 	if(agv_id == "agv1") {
 		tray_parts = env_->getTray1Parts();
 	} else if(agv_id == "agv2") {
@@ -326,6 +326,9 @@ void DynamicPlanner::dynamicPlanningforArm1() {
 			}
 		}
 
+
+		ROS_INFO_STREAM("Shipment not completed");
+
 		if(isShipmentComplete("agv1", shipmnet_it)) {
 			ROS_INFO_STREAM("Send AGV");
 			while (current_shipment_it != shipmnet_it) {
@@ -445,6 +448,7 @@ void DynamicPlanner::dynamicPlanningforArm2() {
 				}
 			}
 		}
+		ROS_INFO_STREAM("Shipment not completed !!");
 		if(isShipmentComplete("agv2", shipmnet_it)) {
 			while (current_shipment_it != shipmnet_it) {
 				ros::Duration(2.0).sleep();

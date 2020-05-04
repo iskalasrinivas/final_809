@@ -152,7 +152,7 @@ void Executor::SendAGV1(){
 
 void Executor::SendAGV2() {
  ros::ServiceClient start_client =
-   executer_nh_.serviceClient<osrf_gear::AGVControl>("/ariac/agv1");
+   executer_nh_.serviceClient<osrf_gear::AGVControl>("/ariac/agv2");
     if (!start_client.exists()) {
         ROS_INFO("Waiting for the client to be ready...");
         start_client.waitForExistence();

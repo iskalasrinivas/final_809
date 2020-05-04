@@ -11,13 +11,13 @@ Environment::Environment()
 , conveyorTrigger(false)
 {
 	// common trash pose
-	trash_bin_pose_.position.x = -0.20;
-	trash_bin_pose_.position.y = 0.0;
-	trash_bin_pose_.position.z = 0.95;
-	trash_bin_pose_.orientation.w = 0;
-	trash_bin_pose_.orientation.x = 0;
-	trash_bin_pose_.orientation.y = 0;
-	trash_bin_pose_.orientation.z = 0;
+//	trash_bin_pose_.position.x = -0.20;
+//	trash_bin_pose_.position.y = 0.0;
+//	trash_bin_pose_.position.z = 0.95;
+//	trash_bin_pose_.orientation.w = 0;
+//	trash_bin_pose_.orientation.x = 0;
+//	trash_bin_pose_.orientation.y = 0;
+//	trash_bin_pose_.orientation.z = 0;
 	pq["agv1"] = new PriorityQueue();
 	pq["agv2"] = new PriorityQueue();
 	pickuplocations["agv1"];
@@ -66,8 +66,20 @@ std::map<std::string, std::map<std::string, std::vector<geometry_msgs::Pose>>>* 
 	return &tray_parts;
 }
 
-geometry_msgs::Pose Environment::getTrashBinPose() {
-	return trash_bin_pose_;
+geometry_msgs::Pose Environment::getTrashBinPose(std::string agv_id) {
+	geometry_msgs::Pose trashbinpose;
+	if(agv_id == "agv1") {
+		trashbinpose = trash_bin_pose_agv1;
+	} else if(agv_id == "agv1") {
+		trashbinpose =  trash_bin_pose_agv2;
+	}
+	return trashbinpose;
+}
+
+void Environment::setTrashBinPose(geometry_msgs::Pose t1, geometry_msgs::Pose t2){
+	trash_bin_pose_agv1= t1;
+	trash_bin_pose_agv2 =t2;
+
 }
 
 void Environment::setorderManagerStatus(bool status) {
@@ -263,9 +275,10 @@ std::array<std::map<std::string, int>, 2> Environment::getCountOfavailablePartsA
 		parttype_count_agv1[part_type] = 0;
 		parttype_count_agv2[part_type] = 0;
 		for (auto part_it = type_it->second.begin(); part_it != type_it->second.end(); ++part_it) {
-			if (part_it->position.y > 0) {
+			if (part_it->position.y > -1.525) {
 				parttype_count_agv1[part_type] += 1;
-			} else {
+			}
+			if (part_it->position.y < 1.525) {
 				parttype_count_agv2[part_type] += 1;
 			}
 		}
@@ -338,4 +351,17 @@ void Environment::clearANYvector() {
 
 std::vector<std::vector<OrderPart*>>* Environment::getshipmentVector(){
 	return &shipment_vector_;
+}
+
+
+void Environment::clearShipmentVector() {
+	shipment_vector_.clear();
+}
+
+PriorityQueue* Environment::getPreOrderForArm2() {
+	return &pre_order_arm2;
+}
+
+PriorityQueue* Environment::getPreOrderForArm1() {
+	return &pre_order_arm1;
 }

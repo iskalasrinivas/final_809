@@ -46,7 +46,7 @@
 #include <std_srvs/Trigger.h>
 #include <boost/optional.hpp>
 #include <set>
-
+#include <algorithm>
 OrderManager::OrderManager(Environment *env) : async_spinner(4), environment(env)
 {
 	async_spinner.start();
@@ -66,6 +66,7 @@ void OrderManager::OrderCallback(const osrf_gear::Order::ConstPtr &order_msg)
 	ROS_WARN(">>>>> OrderCallback");
 	environment->clearPriorityQueue();
 	environment->clearANYvector();
+	environment->clearShipmentVector();
 	setOrderParts(order_msg);         // create new order and assign agv_id and shipment type to parts
 	setArmForAnyParts();              // if there are "any" parts assign them to either arm1 or arm2
 	comparewithTrayandUpdateOrder();  // check whether tray camera is called and segregate into trash parts and tray parts
@@ -166,11 +167,12 @@ void OrderManager::setArmForAnyParts()
 		int agv2_score = 0;
 		for(auto it = shipment_vector_->begin(); it != shipment_vector_->end();++it) {
 			if(it->back()->getAgvId() == "agv1"){
-				agv1_score += it->size();
+				agv1_score -= it->size();
 			} else if (it->back()->getAgvId() == "agv2"){
-				agv2_score += it->size();
+				agv2_score -= it->size();
 			}
 		}
+		ROS_WARN_STREAM("AGV Score : "  << agv1_score << " " << agv2_score);
 		for(auto part_it = any_ship_it->begin(); part_it != any_ship_it->end(); ++part_it) {
 			auto part_type = (*part_it)->getPartType();
 			if (parttype_count_agv1.count(part_type)) {
@@ -218,17 +220,40 @@ void OrderManager::setArmForAnyParts()
 // displace the parts in tray itself and add the new parts from bin.
 void OrderManager::comparewithTrayandUpdateOrder()
 {
+	environment->ensureAllPartsinBothTraysareUpdated();
 	auto r_tray1_parts = *(environment->getTray1Parts());
-	auto r_tray2_parts = *(environment->getTray1Parts());
+	auto r_tray2_parts = *(environment->getTray2Parts());
 
 	comparewithTrayandUpdate("agv1", r_tray1_parts);
 	comparewithTrayandUpdate("agv2", r_tray2_parts);
 }
 
+bool OrderManager::arePoseSame(geometry_msgs::Pose tray_pose, geometry_msgs::Pose order_pose) {
+	double px = pow(tray_pose.position.x - order_pose.position.x, 2);
+	double py = pow(tray_pose.position.y - order_pose.position.y, 2);
+	double pz = pow(tray_pose.position.z - order_pose.position.z, 2);
+
+	//	double ox = tray_pose.orientation.x - order_pose.orientation.x;
+	//	double oy = tray_pose.orientation.y - order_pose.orientation.y;
+	//	double oz = tray_pose.orientation.z - order_pose.orientation.z;
+	//	double ow = tray_pose.orientation.w - order_pose.orientation.w;
+
+	bool pose_same = true;  // TODO
+
+	double dist = sqrt(px + py);
+
+	if (dist < 0.1 and pose_same) {return true;}
+	else {return false;}
+}
+
 void OrderManager::comparewithTrayandUpdate(std::string agv_id,
-		std::map<std::string, std::vector<geometry_msgs::Pose>> &r_tray_parts)
-{
-	auto pq = environment->getPriorityQueue();
+		std::map<std::string, std::vector<geometry_msgs::Pose>> r_tray_parts_) {
+	std::map<std::string, PriorityQueue*>* pq = environment->getPriorityQueue();
+	std::map<std::string, std::vector<geometry_msgs::Pose>> r_tray_parts = r_tray_parts_;
+
+	for (const auto&  traypart_map : r_tray_parts) {
+		ROS_INFO_STREAM("TEST1:" <<traypart_map.first << traypart_map.second.size() );
+	}
 
 	if (!pq->count(agv_id))
 	{
@@ -237,73 +262,114 @@ void OrderManager::comparewithTrayandUpdate(std::string agv_id,
 
 	auto pq1 = pq->at(agv_id);
 
-	// removing parts that are opn tray and of required pose
-	for (auto traypart_map : r_tray_parts)
-	{  // for part on tray
 
-		auto part_type = traypart_map.first;
-		auto part_vec = traypart_map.second;
+	for (auto pq1_it = pq1->getpq()->begin(); pq1_it != pq1->getpq()->end(); ++pq1_it) {
 
-		for (auto pq1_it = pq1->getpq()->begin(); pq1_it != pq1->getpq()->end(); ++pq1_it)
-		{
-			if ((*pq1_it)->getShipmentId() == 0) // only for first shipment
-			{  // under assumption that first shipment has shipment id == 0
-				for (auto part_it = part_vec.begin(); part_it != part_vec.end(); ++part_it)
-				{
-					if ((*pq1_it)->getPartType() == part_type and (*pq1_it)->getEndPose() == (*part_it))
-					{
-						ROS_INFO_STREAM("There are parts in Tray" << agv_id << "similar to current Order");
-						pq1->getpq()->erase(pq1_it);
-						part_vec.erase(part_it);
+		if ((*pq1_it)->getShipmentId() == 0) {
+			if(r_tray_parts.count((*pq1_it)->getPartType()) > 0) {
+				ROS_INFO_STREAM((*pq1_it)->getPartType()<<" Part Size "<< r_tray_parts.at((*pq1_it)->getPartType()).size());
+				if(r_tray_parts.at((*pq1_it)->getPartType()).size() > 0) {
+					auto part_vec_ = &(r_tray_parts.at((*pq1_it)->getPartType()));
+					for(int i = 0; i < part_vec_->size(); ++i) {
+						//					for(auto t_it = r_tray_parts.at((*pq1_it)->getPartType()).begin();t_it != r_tray_parts.at((*pq1_it)->getPartType()).end();++t_it ) {
+
+						ROS_INFO_STREAM((*pq1_it)->getPartType() << " : "<< (*part_vec_)[i].position.x<< " , " << (*part_vec_)[i].position.y);
+						if(arePoseSame((*pq1_it)->getEndPose(), (*part_vec_)[i])) {
+
+							ROS_INFO_STREAM("There is a "<<(*pq1_it)->getPartType()<<" with same pose "
+									<< (*pq1_it)->getEndPose().position.x<< " , " << (*pq1_it)->getEndPose().position.y);
+							pq1->getpq()->erase(pq1_it);
+							part_vec_->erase((*part_vec_).begin()+i);
+							//							r_tray_parts.at((*pq1_it)->getPartType()).erase(t_it);
+						}
 					}
 				}
 			}
 		}
 	}
-
+	for (const auto&  traypart_map : r_tray_parts) {
+		ROS_INFO_STREAM("TEST2:" <<traypart_map.first << traypart_map.second.size() );
+	}
+	PriorityQueue* preorder;
+	if(agv_id == "agv1") {
+		preorder= environment->getPreOrderForArm1();
+	} else if(agv_id == "agv2") {{
+		preorder= environment->getPreOrderForArm2();
+	}
+	ROS_INFO_STREAM("One Stage Crossed");
 	// displace parts update - setting priority and changhinf piuckup pose
-	for (auto traypart_map : r_tray_parts)
-	{
-		auto part_type = traypart_map.first;
-		auto part_vec = traypart_map.second;
 
-		for (auto pq1_it = pq1->getpq()->begin(); pq1_it != pq1->getpq()->end(); ++pq1_it)
-		{
-			if ((*pq1_it)->getShipmentId() == 0) // only for first shipment
-			{  // under assumption that first shipment has shipment id == 0
-				for (auto part_it = part_vec.begin(); part_it != part_vec.end(); ++part_it)
-				{
-					if ((*pq1_it)->getPartType() == part_type)
-					{
-						(*pq1_it)->addPriority(-2);
-						(*pq1_it)->setCurrentPose((*part_it));
-						part_vec.erase(part_it);
-					}
-				}
-			}
-		}
+
+
+//	vector<std::string> clear_map;
+//	for (auto pq1_it = pq1->getpq()->begin(); pq1_it != pq1->getpq()->end(); ++pq1_it) {
+//		//		ROS_INFO_STREAM("Loop 2 :" << count);
+//
+//		if ((*pq1_it)->getShipmentId() == 0) {
+//			for (auto&  traypart_map : r_tray_parts) {
+//				if(traypart_map.first == (*pq1_it)->getPartType()) {
+//					if(traypart_map.second.size() > 0) {
+//						geometry_msgs::Pose t_part = traypart_map.second.back();
+//						ROS_INFO_STREAM("There is "<< (*pq1_it)->getPartType()  << " part in tray with different Pose Start : "
+//								<< t_part.position.x<< " , " << t_part.position.y <<
+//								" End: "<< (*pq1_it)->getEndPose().position.x << " , " << (*pq1_it)->getEndPose().position.y);
+//						(*pq1_it)->addPriority(-7);
+//						(*pq1_it)->setCurrentPose(t_part);
+//						preorder->push((*pq1_it));
+//						pq1->getpq()->erase(pq1_it);
+//						traypart_map.second.pop_back();
+//
+//					} else {
+//						clear_map.push_back(traypart_map.first);
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	for (auto&  it : clear_map) {
+//		r_tray_parts.erase(it);
+//	}
+
+
+	ROS_INFO_STREAM("Two Stage Crossed");
+
+	for (const auto&  traypart_map : r_tray_parts) {
+		ROS_INFO_STREAM("TEST3:" <<traypart_map.first << traypart_map.second.size() );
 	}
-
+	//		for (const auto&  traypart_map : r_tray_parts) {
+	//			ROS_INFO_STREAM("TEST:" <<traypart_map.first << it.position.x << " , "<< it.position.y);
+	//		}
+	//	}
 	// trash parts - remove from tray and put to trash bin // TODO check this part
-	for (auto traypart_map : r_tray_parts) {
-		auto part_type = traypart_map.first;
-		auto part_vec = traypart_map.second;
+	//	for (std::map<std::string, std::vector<geometry_msgs::Pose>>::const_iterator traypart_map =
+	//			r_tray_parts.begin(); traypart_map != r_tray_parts.end(); traypart_map++ ) {
+	for (const auto&  traypart_map : r_tray_parts) {
+		std::string part_type = traypart_map.first;
+		std::vector<geometry_msgs::Pose> part_vec = traypart_map.second;
+		ROS_INFO_STREAM("Thrash Part " << part_type <<", Size : "<< part_vec.size());
 
-		for (auto part_it = part_vec.begin(); part_it != part_vec.end(); ++part_it)
-		{
+		for(int i = 0; i < part_vec.size(); ++i) {
 			OrderPart *trash_part = new OrderPart();
-			ROS_DEBUG_STREAM("WARN");
-			trash_part->setPriority(-3);
+			ROS_WARN_STREAM("WARN Throw :" << part_type << part_vec[i].position.x << ", "<< part_vec[i].position.y);
+			trash_part->setPriority(-10);
 			trash_part->setPartType(part_type);
-			trash_part->setCurrentPose(*part_it);
-			trash_part->setEndPose(environment->getTrashBinPose());
-			pq1->push(trash_part);
+			trash_part->setCurrentPose(part_vec[i]);
+			//			trash_part->setEndPose(environment->getTrashBinPose(agv_id));
+			//			pq1->push(trash_part);
+			trash_part->setTrashPart(true);
+			preorder->push(trash_part);
 		}
 	}
+	}
+	ros::Duration(0.1).sleep();
+	ROS_INFO_STREAM("Third Stage Crossed");
 }
+
 
 void OrderManager::UpdateUnavailableParts()
 {
+	ROS_INFO_STREAM("Stuck");
 	std::map<std::string, std::vector<geometry_msgs::Pose>> *binParts = environment->getSortedBinParts();
 	std::map<std::string, std::set<OrderPart *>> *unavailableParts = environment->getUnavailableParts();
 	auto pq_map = environment->getPriorityQueue();
@@ -322,6 +388,7 @@ void OrderManager::UpdateUnavailableParts()
 	for (auto pq_it = pq_map->begin(); pq_it != pq_map->end(); ++pq_it) {
 		pq_it->second->printPq();
 	}
+	ROS_INFO_STREAM("Stuck2");
 
 }
 

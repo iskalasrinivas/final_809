@@ -52,7 +52,7 @@
  */
 RobotController::RobotController(std::string arm_id)
 : async_spinner(0),
-  interval(0.15),
+  interval(0.30),
   arm_id_(arm_id),
   robot_controller_nh_("/ariac/" + arm_id_),
   robot_controller_options("manipulator", "/ariac/" + arm_id_ + "/robot_description", robot_controller_nh_),
@@ -101,37 +101,46 @@ void RobotController::initialSequence(){
 	home_cart_pose_.orientation.w = robot_tf_transform_.getRotation().w();
 
 
-	GoToJointState(home_joint_fl_arm); // @TODO @Srinivas find the joint state near the home joint pose faced left
-	lookupTransform();
-	face_left_orientation_.x = robot_tf_transform_.getRotation().x();
-	face_left_orientation_.y = robot_tf_transform_.getRotation().y();
-	face_left_orientation_.z = robot_tf_transform_.getRotation().z();
-	face_left_orientation_.w = robot_tf_transform_.getRotation().w();
 
-
-	GoToJointState(home_joint_fr_arm); // @TODO @Srinivas find the joint state near the home joint pose faced right
-	lookupTransform();
-	face_right_orientation_.x = robot_tf_transform_.getRotation().x();
-	face_right_orientation_.y = robot_tf_transform_.getRotation().y();
-	face_right_orientation_.z = robot_tf_transform_.getRotation().z();
-	face_right_orientation_.w = robot_tf_transform_.getRotation().w();
-
-	GoToJointState(flip_test_joint_position);
-		lookupTransform();
-	    face_test_orientation_.x = robot_tf_transform_.getRotation().x();
-		face_test_orientation_.y = robot_tf_transform_.getRotation().y();
-		face_test_orientation_.z = robot_tf_transform_.getRotation().z();
-		face_test_orientation_.w = robot_tf_transform_.getRotation().w();
-
-	SendRobotHome();
+//
+//	GoToJointState(home_joint_fl_arm); // @TODO @Srinivas find the joint state near the home joint pose faced left
+//	lookupTransform();
+//	face_left_orientation_.x = robot_tf_transform_.getRotation().x();
+//	face_left_orientation_.y = robot_tf_transform_.getRotation().y();
+//	face_left_orientation_.z = robot_tf_transform_.getRotation().z();
+//	face_left_orientation_.w = robot_tf_transform_.getRotation().w();
+//
+//
+//	GoToJointState(home_joint_fr_arm); // @TODO @Srinivas find the joint state near the home joint pose faced right
+//	lookupTransform();
+//	face_right_orientation_.x = robot_tf_transform_.getRotation().x();
+//	face_right_orientation_.y = robot_tf_transform_.getRotation().y();
+//	face_right_orientation_.z = robot_tf_transform_.getRotation().z();
+//	face_right_orientation_.w = robot_tf_transform_.getRotation().w();
+//
+//	GoToJointState(flip_test_joint_position);
+//		lookupTransform();
+//	    face_test_orientation_.x = robot_tf_transform_.getRotation().x();
+//		face_test_orientation_.y = robot_tf_transform_.getRotation().y();
+//		face_test_orientation_.z = robot_tf_transform_.getRotation().z();
+//		face_test_orientation_.w = robot_tf_transform_.getRotation().w();
+//
+//	SendRobotHome();
 	postInitialisation();
 	ros::Duration(0.1).sleep();
 	// GoToQualityCameraFromBin();
 }
 
+geometry_msgs::Pose RobotController::getTrashBinPose() {
+
+	return thrash_pose;
+}
+
 void RobotController::postInitialisation() {
+	thrash_pose.orientation = face_down_orientation_;
 	static_bin_pose.orientation = face_down_orientation_;
 	quality_static_pose.orientation = face_down_orientation_;
+
 }
 
 void RobotController::lookupTransform() {
@@ -162,7 +171,7 @@ void RobotController::chooseArm() {
 		home_joint_fr_arm = {1.0, 3.14, -2.0, 2.14, -1.7, 0, 0.0};
 		//		belt_joint_pose_ = { -0.3, 0, -0.7, 1.65, -2.5, -1.59, 0.0};
 		belt_joint_pose_ = { 0.7,-0.9, -0.05,0.2 , -1.65, -1.59, 0.0};
-		quality_cam_joint_position_ = { 1.1, 1.4, -0.5, 1.25, -2.35, -1.59, 0.0  };
+		quality_cam_joint_position_ = { 0.8, 1.4, -0.7, 1.2, -2.2, -1.51, 0.0  };
 		flip_test_joint_position = {0.5, 0, -2.3, -2.1, -2.0, 0, 0.0};
 
 		trash_bin_joint_position_ = {1.18, 2.01, -1.38, 2.26, -2.3, -1.59, 0.0};
@@ -176,8 +185,15 @@ void RobotController::chooseArm() {
 		quality_static_pose.position.y = 3.25;
 		quality_static_pose.position.z = 1.15;
 
+		thrash_pose.position.x = -0.1;
+		thrash_pose.position.y = 2.17;
+		thrash_pose.position.z = 1.15;
+		thrash_pose.orientation.x = 0.0;
+		thrash_pose.orientation.y = 0.0;
+		thrash_pose.orientation.z = 0.0;
+		thrash_pose.orientation.w = 0.0;
 
-		agv_tf_listener_.waitForTransform("world", "kit_tray_1", ros::Time(0), ros::Duration(10));
+				agv_tf_listener_.waitForTransform("world", "kit_tray_1", ros::Time(0), ros::Duration(10));
 		agv_tf_listener_.lookupTransform("/world", "/kit_tray_1", ros::Time(0), agv_tf_transform_);
 
 		agv_position_.position.x = agv_tf_transform_.getOrigin().x();
@@ -187,13 +203,14 @@ void RobotController::chooseArm() {
 
 	} else if (arm_id_ == "arm2") {
 		home_joint_pose_ = {-0.9, -3.14, -2.0, 2.14, -1.7, -1.59, 0.0};
-		home_joint_fl_arm = {	};
+//		home_joint_pose_ = {-0.9, -3.14, -0.80, 2.4, -3.14, -1.59, 0.0};
+//		home_joint_fl_arm = {	};
 		home_joint_fr_arm = {-0.9, -3.14, -2.0, 2.14, -1.7, 0, 0.0};
 //		quality_cam_joint_position_ = { -1.2, -1.68, -0.38, 1.01,-2.2, -1.51, 0.0  };
-		quality_cam_joint_position_ = { -0.9, -1.68, -0.38, 1.01,-2.2, -1.51, 0.0  };
+		quality_cam_joint_position_ = { -0.75, -1.68, -0.65, 1.01,-2.2, -1.51, 0.0 };
 		flip_test_joint_position = {-0.9, 0, -2.3, -2.1, -2.0, 0, 0.0};
 
-		trash_bin_joint_position_ = { -1.18, -2.76, -2.08, 2.71, 3.29, -1.51, 0.0 };
+		trash_bin_joint_position_ = { -1.18, -2.76, -2.08, 2.71, -1.7, -1.51, 0.0 };
 		// home_joint_ff_arm = home_joint_fl_arm;
 
 //		belt_joint_pose_ = {-0.6, 0, -0.7, 1.65, -2.5, -1.59, 0.0 };
@@ -205,6 +222,14 @@ void RobotController::chooseArm() {
 		quality_static_pose.position.x = 0.19;
 		quality_static_pose.position.y = -3.25;
 		quality_static_pose.position.z = 1.15;
+
+		thrash_pose.position.x = -0.10;
+		thrash_pose.position.y = -2.17;
+		thrash_pose.position.z = 1.15;
+		thrash_pose.orientation.x = 0.0;
+		thrash_pose.orientation.y = 0.0;
+		thrash_pose.orientation.z = 0.0;
+		thrash_pose.orientation.w = 0.0;
 
 		agv_tf_listener_.waitForTransform("world", "kit_tray_2", ros::Time(0), ros::Duration(10));
 		agv_tf_listener_.lookupTransform("/world", "/kit_tray_2", ros::Time(0), agv_tf_transform_);
@@ -366,22 +391,31 @@ void RobotController::GoToQualityCamera() {
 }
 
 void RobotController::pickPartFromAGV(const geometry_msgs::Pose &part_pose) {
-	pickPart(part_pose, 0.750);
+	pickPart(part_pose, 0.750, 0.2);
 }
 
 void RobotController::pickPartFromBin(const geometry_msgs::Pose &part_pose) {
-	pickPart(part_pose, 0.725);
+	pickPart(part_pose, 0.725, 0.7);
 }
 
-void RobotController::pickPart(const geometry_msgs::Pose &part_pose, double bin_height) {
-	double bin_x_dis = 0.1; // Trial error
-
+void RobotController::pickPart(const geometry_msgs::Pose &part_pose, double bin_height, double pickupheight) {
+	double bin_x_dis = 0.0; // Trial error
+	if(part_pose.position.x < -0.40 ) {
+		bin_x_dis = 0.1;
+	}
+	if(part_pose.position.x < -0.45 ) {
+			bin_x_dis = 0.17;
+		}
+	if(part_pose.position.x > -0.20 ) {
+			bin_x_dis = -0.1;
+		}
 	double object_thickness = std::fabs(part_pose.position.z - bin_height); //half odf the object thickness
 
 	geometry_msgs::Pose inter_pose = part_pose;
-	inter_pose.position.z = part_pose.position.z + 4 * object_thickness + 0.2;
+	inter_pose.position.z = part_pose.position.z + 4 * object_thickness + pickupheight;
 	inter_pose.position.x += bin_x_dis;
 	GoToTarget(inter_pose);
+	inter_pose.position.z = part_pose.position.z + 4 * object_thickness + 0.2;
 	inter_pose.position.x -= bin_x_dis;
 	GoToTarget(inter_pose);
 	geometry_msgs::Pose arrival_pose = part_pose;
@@ -393,12 +427,17 @@ void RobotController::pickPart(const geometry_msgs::Pose &part_pose, double bin_
 	ROS_WARN_STREAM("Gripper toggled");
 	while (!isPartAttached()) {
 		ROS_WARN_STREAM("Part not attached");
-		arrival_pose.position.z -= std::max(0.02*object_thickness, 0.02);
+		arrival_pose.position.z -= std::min(std::max(1.5*object_thickness, 0.02), 0.1);
+		if(arrival_pose.position.z <= bin_height ) {
+			arrival_pose.position.z = bin_height;
+		}
 		GoToTarget(arrival_pose);
+//		ros::Duration(interval).sleep();
 	}
 	ROS_INFO_STREAM("Part attached");
 	arrival_pose.position.z = part_pose.position.z + 1.1 * object_thickness + 0.05;
 	GoToTarget(arrival_pose);
+	inter_pose.position.z = part_pose.position.z + 4 * object_thickness + pickupheight;
 	ros::Duration(interval).sleep();
 	GoToTarget(inter_pose);
 	ros::Duration(interval).sleep();
@@ -406,18 +445,18 @@ void RobotController::pickPart(const geometry_msgs::Pose &part_pose, double bin_
 	GoToTarget(inter_pose);
 	ros::Duration(interval).sleep();
 	// GoToBinStaticPosition();
-	ROS_INFO_STREAM("Coming back To BinStaticPosition");
+//	ROS_INFO_STREAM("Coming back To BinStaticPosition");
 }
 
 void RobotController::dropPart(const geometry_msgs::Pose &part_pose) {
 	ROS_INFO_STREAM("Droping Part");
 	ros::Duration(interval).sleep();
 
-	auto target_top_pose_1 = part_pose;
+	geometry_msgs::Pose target_top_pose_1 = part_pose;
 	target_top_pose_1.position.z += 0.2;
 	GoToTarget(target_top_pose_1);
 	ros::Duration(interval).sleep();
-	auto target_pose = part_pose;
+	geometry_msgs::Pose target_pose = part_pose;
 	target_pose.position.z += 0.1;
 	GoToTarget(target_pose);
 	GripperToggle(false);
@@ -645,3 +684,5 @@ bool RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
 	return true;
 	} else {return false;}
 }
+
+

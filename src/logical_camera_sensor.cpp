@@ -11,7 +11,7 @@ LogicalCameraSensor::LogicalCameraSensor(std::string topic, Environment* env, bo
   transform_(topic) {
 	async_spinner.start();
 	getCameraName(topic);
-//	was_trigger_cam_empty = true;
+	//	was_trigger_cam_empty = true;
 
 	if (bincam_)
 	{
@@ -55,19 +55,21 @@ void LogicalCameraSensor::SortAllBinParts() {
 	//	ROS_INFO_STREAM("<<<<<Sorting all bin parts>>>>>");
 	auto sorted_all_binParts = environment_->getSortedBinParts();
 	auto all_binParts = environment_->getAllBinParts();
-	sorted_all_binParts->clear();
+	std::map<std::string, std::vector<geometry_msgs::Pose>> temp = *sorted_all_binParts;
+	//	sorted_all_binParts->clear();
 	for (auto cam_id : *all_binParts) {
 		for (auto map_parts : cam_id.second) {
 			auto part_type = map_parts.first;
 			auto vec_parts = map_parts.second;
-			if (sorted_all_binParts->count(part_type)) {
-				(*sorted_all_binParts)[part_type].insert((*sorted_all_binParts)[part_type].end(), vec_parts.begin(),
+			if (temp.count(part_type)) {
+				temp[part_type].insert(temp[part_type].end(), vec_parts.begin(),
 						vec_parts.end());
 			} else {
-				(*sorted_all_binParts)[part_type] = vec_parts;
+				temp[part_type] = vec_parts;
 			}
 		}
 	}
+	*sorted_all_binParts = temp;
 
 }
 
@@ -112,13 +114,13 @@ void LogicalCameraSensor::beltTriggerLogicalCameraCallback(const osrf_gear::Logi
 							(*part_it)->setHighestPriority();
 							if((*pickuplocations)[(*part_it)->getAgvId()].count((*part_it)->getPartType()) == 0) {
 								std::map<std::string, geometry_msgs::Pose*> temp;
-//								temp.insert(std::pair<std::string, geometry_msgs::Pose*>((*part_it)->getPartType(), nullptr));
-//								pickuplocations->insert(std::pair<std::string,std::map<std::string, geometry_msgs::Pose*>>((*part_it)->getAgvId(), temp));
+								//								temp.insert(std::pair<std::string, geometry_msgs::Pose*>((*part_it)->getPartType(), nullptr));
+								//								pickuplocations->insert(std::pair<std::string,std::map<std::string, geometry_msgs::Pose*>>((*part_it)->getAgvId(), temp));
 								(*pickuplocations)[(*part_it)->getAgvId()][(*part_it)->getPartType()] = nullptr;
 
-//								ROS_WARN_STREAM("LC Created T : " << (*part_it)->getAgvId() << " " << (*part_it)->getPartType());
+								//								ROS_WARN_STREAM("LC Created T : " << (*part_it)->getAgvId() << " " << (*part_it)->getPartType());
 								if((*pickuplocations)[(*part_it)->getAgvId()][(*part_it)->getPartType()] == nullptr) {
-//									ROS_INFO_STREAM("LC : nullptr");
+									//									ROS_INFO_STREAM("LC : nullptr");
 								}
 								should_break = true;
 							}
@@ -131,7 +133,7 @@ void LogicalCameraSensor::beltTriggerLogicalCameraCallback(const osrf_gear::Logi
 		}
 	}
 
-//		ROS_INFO_STREAM("<<<<<Sequence of Trigger Camera Callback is finished !!>>>>>");
+	//		ROS_INFO_STREAM("<<<<<Sequence of Trigger Camera Callback is finished !!>>>>>");
 }
 
 
@@ -141,33 +143,33 @@ void LogicalCameraSensor::beltLogicalCameraCallback(std::string agv_id, const os
 	// transform_.setParentPose(sensor_pose);
 
 	std::map<std::string, geometry_msgs::Pose*>* armpickuplocation = &((*environment_->getPickupLocations())[agv_id]);
-//	std::map<std::string, std::map<std::string, geometry_msgs::Pose*>>* apl = environment_->getPickupLocations();
-//	std::map<std::string, std::map<std::string, geometry_msgs::Pose*>>::iterator armpickuplocation = apl->find(agv_id);
-//	ROS_WARN_STREAM("STUCK0");
+	//	std::map<std::string, std::map<std::string, geometry_msgs::Pose*>>* apl = environment_->getPickupLocations();
+	//	std::map<std::string, std::map<std::string, geometry_msgs::Pose*>>::iterator armpickuplocation = apl->find(agv_id);
+	//	ROS_WARN_STREAM("STUCK0");
 	//	ROS_WARN_STREAM("Size of belt array : " << image_msg->models.size());
 	for (auto it = image_msg->models.begin(); it != image_msg->models.end(); ++it) {
-//		ROS_WARN_STREAM("STUCK11");
+		//		ROS_WARN_STREAM("STUCK11");
 		if (armpickuplocation->count(it->type)) {
-//			ROS_WARN_STREAM("STUCK1");
+			//			ROS_WARN_STREAM("STUCK1");
 			geometry_msgs::Pose pose = transform_.getChildPose(it->pose);
 			if (armpickuplocation->at(it->type) == nullptr) {
-//				ROS_WARN_STREAM("STUCK2");
+				//				ROS_WARN_STREAM("STUCK2");
 				geometry_msgs::Pose* pose_ = new geometry_msgs::Pose();
 				*pose_ = pose;
-//				armpickuplocation->second.insert(std::pair<std::string, geometry_msgs::Pose*>(it->type, pose_ ));
-//				armpickuplocation->insert(std::make_pair(it->type, pose_ ));
-//				armpickuplocation->at(it->type) = new geometry_msgs::Pose();
+				//				armpickuplocation->second.insert(std::pair<std::string, geometry_msgs::Pose*>(it->type, pose_ ));
+				//				armpickuplocation->insert(std::make_pair(it->type, pose_ ));
+				//				armpickuplocation->at(it->type) = new geometry_msgs::Pose();
 				armpickuplocation->at(it->type) = pose_;
 				//				ROS_WARN_STREAM("STUCK22");
-//				ROS_WARN_STREAM("LC New B " << *(environment_->getPickupLocations()->at(agv_id).at(it->type)));
-//				ROS_WARN_STREAM("Value of pose assigned is new Pose()");
+				//				ROS_WARN_STREAM("LC New B " << *(environment_->getPickupLocations()->at(agv_id).at(it->type)));
+				//				ROS_WARN_STREAM("Value of pose assigned is new Pose()");
 			} else if (armpickuplocation->at(it->type)->position.y > it->pose.position.y) {
-//								ROS_WARN_STREAM("STUCK3");
-//				*(armpickuplocation->at(it->type)) = pose;
+				//								ROS_WARN_STREAM("STUCK3");
+				//				*(armpickuplocation->at(it->type)) = pose;
 				geometry_msgs::Pose* pose_ = armpickuplocation->at(it->type);
 				*pose_ = pose;
-//				armpickuplocation->insert(std::pair<std::string, geometry_msgs::Pose*>(it->type, pose ));
-//				ROS_WARN_STREAM("LC Old B " << *(environment_->getPickupLocations()->at(agv_id).at(it->type)));
+				//				armpickuplocation->insert(std::pair<std::string, geometry_msgs::Pose*>(it->type, pose ));
+				//				ROS_WARN_STREAM("LC Old B " << *(environment_->getPickupLocations()->at(agv_id).at(it->type)));
 			}
 		}
 	}
@@ -185,6 +187,7 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 		// transform_.setParentPose(sensor_pose);
 
 		std::map<std::string, std::map<std::string, std::vector<geometry_msgs::Pose>>>* currentPartsPtr;
+
 		if ((*bincammap_).count(cam_name)) {
 			currentPartsPtr = environment_->getAllBinParts();
 		}
@@ -193,8 +196,10 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 			currentPartsPtr = environment_->getAllTrayParts();
 		}
 
-		if (currentPartsPtr->count(cam_name) == 1) {
-			(*currentPartsPtr)[cam_name].clear();
+		std::map<std::string, std::map<std::string, std::vector<geometry_msgs::Pose>>> currentParts = *currentPartsPtr;
+
+		if (currentParts.count(cam_name) == 1) {
+			currentParts[cam_name].clear();
 		}
 
 		for (auto it = image_msg->models.begin(); it != image_msg->models.end(); ++it) {
@@ -202,20 +207,22 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 			// transform_.setWorldTransform();
 			auto partType = it->type;
 			geometry_msgs::Pose pose = transform_.getChildPose(it->pose);
-			if ((*currentPartsPtr)[cam_name].count(partType))
+			if (currentParts[cam_name].count(partType))
 			{
-				(*currentPartsPtr)[cam_name][partType].push_back(pose);
+				currentParts[cam_name][partType].push_back(pose);
 			}
 			else {
-				(*currentPartsPtr)[cam_name][partType] = std::vector<geometry_msgs::Pose>{ pose };
+				currentParts[cam_name][partType] = std::vector<geometry_msgs::Pose>{ pose };
 			}
 		}
-
-		if (bincammap_->count(cam_name)) { // sort every time :not effective :see 191
-
-			SortAllBinParts();
-		}
+		*currentPartsPtr = currentParts;
+		//		if (bincammap_->count(cam_name)) { // sort every time :not effective :see 191
+		//
+		//			SortAllBinParts();
+		//		}
 		//	}
+
+
 		if (bincam_) {
 			auto bincambool_ = environment_->getBinCamBoolMap();
 			(*bincambool_)[cam_name] = true;
@@ -228,7 +235,7 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 			}
 			//			ROS_INFO_STREAM(cam_name << " : Bin Debug : " << count << " of " << bincamsize_);
 			if (count == bincamsize_) {
-				//				SortAllBinParts();
+				SortAllBinParts();
 				environment_->setAllBinCameraCalled(true);
 				//				environment_->setBinCameraRequired(false);
 				environment_->resetBinCamBoolmap();

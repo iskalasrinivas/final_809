@@ -46,7 +46,7 @@
 
 OrderPart::OrderPart(std::string ship_type, std::string aid, std::string part_type, geometry_msgs::Pose t_pose) : 
 shipment_type(ship_type), agv_id(aid), tobepickedbyotherhand_(false),
-part_type_(part_type), tray_pose_(t_pose), tfListener(tfBuffer), flip_part(false), static_part(true)
+part_type_(part_type), tray_pose_(t_pose), tfListener(tfBuffer), flip_part(false), static_part(true), trashpart_(false)
 {
  ros::AsyncSpinner async_spinner(4);
  ROS_INFO_STREAM("New order object Created");
@@ -61,7 +61,7 @@ tf2_ros::Buffer OrderPart::tfBuffer {};
 int OrderPart::count{0};
 
 OrderPart::OrderPart(): tfListener(tfBuffer), flip_part(false), static_part(false),
-		priority(INT_MAX), ship_id(0), in_transit_(false), tobepickedbyotherhand_(false){}
+		priority(INT_MAX), ship_id(0), in_transit_(false), tobepickedbyotherhand_(false), trashpart_(false){}
 
 OrderPart::~OrderPart() {}
 
@@ -190,7 +190,7 @@ void OrderPart::worldTransformation() {
    }
  ros::Duration(0.01).sleep();
  // ROS_INFO_STREAM("Order  tray frame : " << tray_pose_.position.x << "  " << tray_pose_.position.y << "  " <<tray_pose_.position.z);
- ROS_INFO_STREAM("Order End Pose: " << end_pose_.position.x << "  " << end_pose_.position.y << "  " <<end_pose_.position.z);
+ ROS_INFO_STREAM("Order Part :" << part_type_ <<"  End Pose: " << end_pose_.position.x << "  " << end_pose_.position.y << "  " <<end_pose_.position.z);
 
 }
 
@@ -236,3 +236,11 @@ bool OrderPart::hasToBePickedbyOtherHand(){
 void OrderPart::setPickedbyOtherHand(bool cond) {
 	tobepickedbyotherhand_ = cond;
 }
+bool OrderPart::isTrashPart(){
+ return trashpart_;
+}
+ void OrderPart::setTrashPart(bool tp){
+	 trashpart_ = tp;
+ }
+
+

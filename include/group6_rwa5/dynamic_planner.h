@@ -115,6 +115,8 @@ public:
  bool isitCurrentShipment();
 
  void removeUnwantedPartfromTray(std::string, std::vector<std::vector<OrderPart*>>::iterator);
+
+ void clearTray(RobotController*, std::string);
  // void flipPart(OrderPart * oPart);
 };
 

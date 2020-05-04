@@ -81,13 +81,14 @@ public:
     void OrderCallback(const osrf_gear::Order::ConstPtr&);
     void setOrderParts(const osrf_gear::Order::ConstPtr& order_msg);
     std::map<std::string, std::vector<OrderPart*>> getTrashParts(std::map<std::string, std::vector<geometry_msgs::Pose>>);
-    void comparewithTrayandUpdate(std::string agv_id, std::map<std::string, std::vector<geometry_msgs::Pose>>&);
+    void comparewithTrayandUpdate(std::string agv_id, std::map<std::string, std::vector<geometry_msgs::Pose>> );
     bool comparePose();
     void updatePickupLocation();
     void setArmForAnyParts();
     void UpdateUnavailableParts();
     void UpdateUnavailablePartsforEachAGV(std::string);
     void executeDynamicPlanner();
+    bool arePoseSame(geometry_msgs::Pose, geometry_msgs::Pose);
 };
 
 #endif //  GROUP6_RWA5_ORDER_MANAGER_H_

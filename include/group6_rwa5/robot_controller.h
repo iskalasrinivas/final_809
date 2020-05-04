@@ -93,6 +93,7 @@ private:
 	geometry_msgs::Pose static_bin_pose;
 	geometry_msgs::Pose quality_static_pose;
 	geometry_msgs::Pose current_pose_;
+	geometry_msgs::Pose thrash_pose;
 
 	std::vector<double> belt_joint_pose_;
 	std::vector<double> home_joint_pose_;
@@ -141,6 +142,7 @@ public:
 	bool Planner();
 	void chooseArm();
 	void initialSequence();
+
 	void postInitialisation();
 	void lookupTransform();
 	void Execute();
@@ -161,6 +163,7 @@ public:
 	std::string getArmName();
 	void GoToJointState(const std::vector<double> &);
 	geometry_msgs::Pose getHomeCartPose();
+	geometry_msgs::Pose getTrashBinPose();
 	void GotoTarget(const geometry_msgs::Pose&);
 
 	void SendRobotHome();
@@ -172,7 +175,7 @@ public:
 	void collisionAvoidance();
 	geometry_msgs::Pose getCurrentPose();
 
-	void pickPart(const geometry_msgs::Pose&, double);
+	void pickPart(const geometry_msgs::Pose&, double, double);
 	void pickPartFromAGV(const geometry_msgs::Pose&);
 	void pickPartFromBin(const geometry_msgs::Pose&);
 	bool pickPartFromBelt(geometry_msgs::Pose*);

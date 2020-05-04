@@ -56,6 +56,7 @@ private:
  std::string agv_id;
  bool in_transit_;
  bool tobepickedbyotherhand_;
+ bool trashpart_;
  int ship_id;
  geometry_msgs::Pose tray_pose_;
  geometry_msgs::Pose end_pose_;
@@ -111,6 +112,9 @@ public:
 
  bool isOfHighestPriority();
  bool isOfLowestPriority();
+
+ bool isTrashPart();
+ void setTrashPart(bool);
 
 };
 

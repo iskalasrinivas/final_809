@@ -20,6 +20,8 @@ private:
   std::map<std::string, std::set<OrderPart *>> unAvailablePartsForArm;  // agv_id
 
   std::map<std::string, std::map<std::string, geometry_msgs::Pose*>> pickuplocations;  // agv_id, part_type
+  PriorityQueue pre_order_arm1;
+  PriorityQueue pre_order_arm2;
   std::map<std::string, PriorityQueue*> pq;                                            //  string here is agv_id
   std::vector<std::vector <OrderPart*>> shipment_with_ANY_tag;
   AvailableBinPoses availablebinposes_;
@@ -33,7 +35,7 @@ private:
   std::map<std::string, std::vector<OrderPart*> > completed_shipment_;
 
   std::map<std::string, bool> is_faulty;
-  geometry_msgs::Pose trash_bin_pose_;
+  geometry_msgs::Pose trash_bin_pose_agv1, trash_bin_pose_agv2;
 
   //  to check whether the callback function is called or not
   std::map<std::string, bool> bin_cam_bool_map_;
@@ -68,7 +70,8 @@ public:
   std::map<std::string, std::map<std::string, std::vector<geometry_msgs::Pose>>> *getAllTrayParts();
   std::map<std::string, std::vector<geometry_msgs::Pose> > *getTray1Parts();
   std::map<std::string, std::vector<geometry_msgs::Pose> > *getTray2Parts();
-  geometry_msgs::Pose getTrashBinPose();
+  geometry_msgs::Pose getTrashBinPose(std::string);
+  void setTrashBinPose(geometry_msgs::Pose, geometry_msgs::Pose);
   std::map<std::string, std::map<std::string, geometry_msgs::Pose*>> *getPickupLocations();
 
   bool getOrderManagerStatus() const;
@@ -133,6 +136,9 @@ public:
   std::vector<std::vector <OrderPart*>> * getShipmentsOfAnyTagId();
   void clearANYvector();
   std::vector<std::vector<OrderPart*>>* getshipmentVector();
+  void clearShipmentVector();
+  PriorityQueue* getPreOrderForArm2();
+  PriorityQueue* getPreOrderForArm1();
 };
 
 #endif  // GROUP6_RWA4_ENVIRONMENT_H

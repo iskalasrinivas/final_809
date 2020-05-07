@@ -166,12 +166,7 @@ void AvailableBinPoses::addToAvailableBinPoses(std::string cam_name, geometry_ms
 
 // add a pose to a camera in arm1 reach i.e. 3 bins
 
-
-
 geometry_msgs::Pose AvailableBinPoses::getAvailableBinPoseArm1(){
-//	ROS_ERROR_STREAM("AP A1 : " << available_poses_arm1_.size());
-	//	auto first_available_cam_it = available_poses_arm1_.begin(); //std::map<std::string, std::vector<geometry_msgs::Pose>>
-
 	geometry_msgs::Pose pose_ = available_poses_arm1_.front();
 	auto remove_it = available_poses_arm1_.begin();
 
@@ -204,48 +199,3 @@ geometry_msgs::Pose AvailableBinPoses::getAvailableBinPoseArm2() {
 	available_poses_arm2_.erase(remove_it);
 	return pose_;
 }
-
-
-//geometry_msgs::Pose AvailableBinPoses::getAvailableBinPoseArm1(){
-//	auto first_available_cam_it = available_poses_arm1_.begin(); //std::map<std::string, std::vector<geometry_msgs::Pose>>
-//	geometry_msgs::Pose pose_ = available_poses_arm1_.front();
-//
-//	for (auto pose_it = available_poses_arm1_.begin(); pose_it != available_poses_arm1_.end(); ++pose_it) {
-//		ROS_INFO_STREAM( "AP1: " << pose_it->position.x << ", " << pose_it->position.y);
-//		if(pose_.position.y < 0) {
-//			if (pose_it->position.y > pose_.position.y) {
-//				pose_ = *pose_it;
-//			}
-//		} else {
-//			if(pose_it->position.y > 0) {
-//
-//				if (pose_it->position.y < pose_.position.y) {
-//					pose_ = *pose_it;
-//				}
-//			}
-//		}
-//	}
-//	return pose_;
-//} // returns a pose available in one of the 3bins for arm2
-
-//geometry_msgs::Pose AvailableBinPoses::getAvailableBinPoseArm2() {
-//	auto first_available_cam_it = available_poses_arm2_.begin(); //std::map<std::string, std::vector<geometry_msgs::Pose>>
-//	geometry_msgs::Pose pose_ = available_poses_arm2_.front();
-//
-//	for (auto pose_it = available_poses_arm2_.begin(); pose_it != available_poses_arm2_.end(); ++pose_it) {
-//		ROS_INFO_STREAM( "AP2: " << pose_it->position.x << ", " << pose_it->position.y);
-//		if(pose_.position.y > 0) {
-//			if (pose_it->position.y < pose_.position.y) {
-//				pose_ = *pose_it;
-//			}
-//		} else {
-//			if(pose_it->position.y < 0) {
-//
-//				if (pose_it->position.y > pose_.position.y) {
-//					pose_ = *pose_it;
-//				}
-//			}
-//		}
-//	}
-//	return pose_;
-//} // returns a pose available in one of the 3bins for arm1

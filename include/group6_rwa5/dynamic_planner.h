@@ -119,7 +119,7 @@ public:
 
  void clearTray(RobotController*, std::string);
 
- void checkBeforeDispatch(std::vector<std::vector<OrderPart*>>::iterator, std::string);
+ void checkBeforeDispatch(RobotController*, std::vector<std::vector<OrderPart*>>::iterator, std::string);
 
  bool arePoseSame(geometry_msgs::Pose, geometry_msgs::Pose);
  // void flipPart(OrderPart * oPart);

@@ -102,30 +102,30 @@ void RobotController::initialSequence(){
 
 
 
-//
-//	GoToJointState(home_joint_fl_arm); // @TODO @Srinivas find the joint state near the home joint pose faced left
-//	lookupTransform();
-//	face_left_orientation_.x = robot_tf_transform_.getRotation().x();
-//	face_left_orientation_.y = robot_tf_transform_.getRotation().y();
-//	face_left_orientation_.z = robot_tf_transform_.getRotation().z();
-//	face_left_orientation_.w = robot_tf_transform_.getRotation().w();
-//
-//
-//	GoToJointState(home_joint_fr_arm); // @TODO @Srinivas find the joint state near the home joint pose faced right
-//	lookupTransform();
-//	face_right_orientation_.x = robot_tf_transform_.getRotation().x();
-//	face_right_orientation_.y = robot_tf_transform_.getRotation().y();
-//	face_right_orientation_.z = robot_tf_transform_.getRotation().z();
-//	face_right_orientation_.w = robot_tf_transform_.getRotation().w();
-//
-//	GoToJointState(flip_test_joint_position);
-//		lookupTransform();
-//	    face_test_orientation_.x = robot_tf_transform_.getRotation().x();
-//		face_test_orientation_.y = robot_tf_transform_.getRotation().y();
-//		face_test_orientation_.z = robot_tf_transform_.getRotation().z();
-//		face_test_orientation_.w = robot_tf_transform_.getRotation().w();
-//
-//	SendRobotHome();
+
+	GoToJointState(home_joint_fl_arm); // @TODO @Srinivas find the joint state near the home joint pose faced left
+	lookupTransform();
+	face_left_orientation_.x = robot_tf_transform_.getRotation().x();
+	face_left_orientation_.y = robot_tf_transform_.getRotation().y();
+	face_left_orientation_.z = robot_tf_transform_.getRotation().z();
+	face_left_orientation_.w = robot_tf_transform_.getRotation().w();
+
+
+	GoToJointState(home_joint_fr_arm); // @TODO @Srinivas find the joint state near the home joint pose faced right
+	lookupTransform();
+	face_right_orientation_.x = robot_tf_transform_.getRotation().x();
+	face_right_orientation_.y = robot_tf_transform_.getRotation().y();
+	face_right_orientation_.z = robot_tf_transform_.getRotation().z();
+	face_right_orientation_.w = robot_tf_transform_.getRotation().w();
+
+	GoToJointState(flip_test_joint_position);
+		lookupTransform();
+	    face_test_orientation_.x = robot_tf_transform_.getRotation().x();
+		face_test_orientation_.y = robot_tf_transform_.getRotation().y();
+		face_test_orientation_.z = robot_tf_transform_.getRotation().z();
+		face_test_orientation_.w = robot_tf_transform_.getRotation().w();
+
+	SendRobotHome();
 	postInitialisation();
 	ros::Duration(0.1).sleep();
 	// GoToQualityCameraFromBin();
@@ -377,17 +377,6 @@ void RobotController::dropInTrash() {
 
 
 void RobotController::GoToQualityCamera() {
-	//	ros::AsyncSpinner spinner(4);
-	//	robot_move_group_.setPoseTarget(quality_static_pose);
-	//	spinner.start();
-	//	ROS_INFO_STREAM(" Going to Quality Camera");
-	//	ros::Duration(interval).sleep();
-	//	if (this->Planner()) {
-	//		ros::Duration(interval).sleep();
-	//		robot_move_group_.move();
-	//		ROS_INFO_STREAM(" Reached Quality Camera Position");
-	//		ros::Duration(interval).sleep();
-	//	}
 	GoToJointState(quality_cam_joint_position_);
 	setAtQualitySensor();
 }
@@ -693,5 +682,3 @@ bool RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
 	return true;
 	} else {return false;}
 }
-
-

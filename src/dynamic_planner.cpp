@@ -346,7 +346,7 @@ void DynamicPlanner::dynamicPlanningforArm1() {
 
 			// TODO Send AGV
 			// Wait for AGV
-			checkBeforeDispatch(current_shipment_it, "agv1");
+			checkBeforeDispatch(arm1_, current_shipment_it, "agv1");
 			ROS_INFO_STREAM("Sending AGV 2");
 			exe_.SendAGV1();
 			ros::Duration(5.0).sleep();
@@ -465,7 +465,7 @@ void DynamicPlanner::dynamicPlanningforArm2() {
 
 			// TODO Send AGV
 			// Wait for AGV
-			checkBeforeDispatch(current_shipment_it, "agv2");
+			checkBeforeDispatch(arm2_,current_shipment_it, "agv2");
 			ROS_INFO_STREAM("Sending AGV 2");
 			exe_.SendAGV2();
 			ros::Duration(5.0).sleep();
@@ -478,7 +478,7 @@ void DynamicPlanner::dynamicPlanningforArm2() {
 	}
 }
 
-void DynamicPlanner::checkBeforeDispatch(std::vector<std::vector<OrderPart*>>::iterator current_shipment_it, std::string agv_id){
+void DynamicPlanner::checkBeforeDispatch(RobotController* arm_, std::vector<std::vector<OrderPart*>>::iterator current_shipment_it, std::string agv_id){
 	ROS_INFO_STREAM("Making the Order correct for " << agv_id);
 	env_->ensureAllPartsinBothTraysareUpdated();
 	std::map<std::string, std::vector<geometry_msgs::Pose>> tray_parts;
@@ -506,6 +506,7 @@ void DynamicPlanner::checkBeforeDispatch(std::vector<std::vector<OrderPart*>>::i
 			}
 		}
 	}
+
 	PriorityQueue delivery;
 	std::vector<std::string> clear_map2;
 	for(auto part_it = current_shipment.begin(); part_it != current_shipment.end();++part_it) {
@@ -528,6 +529,15 @@ void DynamicPlanner::checkBeforeDispatch(std::vector<std::vector<OrderPart*>>::i
 	}
 	for (auto&  it : clear_map2) {
 		tray_parts.erase(it);
+	}
+	delivery.printPq();
+	while(!delivery.empty()) {
+		auto order_part = delivery.top();
+		ros::Duration(0.01).sleep();
+
+		delivery.pop();
+		arm_->pickPartFromAGV(order_part->getCurrentPose());
+		arm_->dropPart(order_part->getEndPose());
 	}
 
 

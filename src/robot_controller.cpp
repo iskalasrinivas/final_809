@@ -52,7 +52,7 @@
  */
 RobotController::RobotController(std::string arm_id)
 : async_spinner(0),
-  interval(0.30),
+  interval(0.12),
   arm_id_(arm_id),
   robot_controller_nh_("/ariac/" + arm_id_),
   robot_controller_options("manipulator", "/ariac/" + arm_id_ + "/robot_description", robot_controller_nh_),
@@ -427,7 +427,11 @@ void RobotController::pickPart(const geometry_msgs::Pose &part_pose, double bin_
 	ROS_WARN_STREAM("Gripper toggled");
 	while (!isPartAttached()) {
 		ROS_WARN_STREAM("Part not attached");
-		arrival_pose.position.z -= std::min(std::max(1.5*object_thickness, 0.02), 0.1);
+		if(std::fabs(arrival_pose.position.z - bin_height) > 0.02) {
+			arrival_pose.position.z -=std::fabs(arrival_pose.position.z - bin_height)/2;
+		} else {
+			arrival_pose.position.z -= std::min(std::max(1.5*object_thickness, 0.02), 0.1);
+		}
 		if(arrival_pose.position.z <= bin_height ) {
 			arrival_pose.position.z = bin_height;
 		}
@@ -453,7 +457,7 @@ void RobotController::dropPart(const geometry_msgs::Pose &part_pose) {
 	ros::Duration(interval).sleep();
 
 	geometry_msgs::Pose target_top_pose_1 = part_pose;
-	target_top_pose_1.position.z += 0.2;
+	target_top_pose_1.position.z += 0.3;
 	GoToTarget(target_top_pose_1);
 	ros::Duration(interval).sleep();
 	geometry_msgs::Pose target_pose = part_pose;
@@ -679,7 +683,7 @@ bool RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
 	}
 	if (isPartAttached()) {
 	ROS_INFO_STREAM("Part attached");
-	picking_pose.position.z += 0.2;
+	picking_pose.position.z += 0.15;
 	GoToTarget(picking_pose);
 	return true;
 	} else {return false;}

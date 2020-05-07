@@ -11,18 +11,51 @@ Environment::Environment()
 , conveyorTrigger(false)
 {
 	// common trash pose
-//	trash_bin_pose_.position.x = -0.20;
-//	trash_bin_pose_.position.y = 0.0;
-//	trash_bin_pose_.position.z = 0.95;
-//	trash_bin_pose_.orientation.w = 0;
-//	trash_bin_pose_.orientation.x = 0;
-//	trash_bin_pose_.orientation.y = 0;
-//	trash_bin_pose_.orientation.z = 0;
+	//	trash_bin_pose_.position.x = -0.20;
+	//	trash_bin_pose_.position.y = 0.0;
+	//	trash_bin_pose_.position.z = 0.95;
+	//	trash_bin_pose_.orientation.w = 0;
+	//	trash_bin_pose_.orientation.x = 0;
+	//	trash_bin_pose_.orientation.y = 0;
+	//	trash_bin_pose_.orientation.z = 0;
 	pq["agv1"] = new PriorityQueue();
 	pq["agv2"] = new PriorityQueue();
 	pickuplocations["agv1"];
 	pickuplocations["agv2"];
+
+	loopFunction();
+
 };
+
+void Environment::loopFunction() {
+
+	available_bin_thread = std::thread(&Environment::updateAvailableBinPoses, this);
+	//	available_bin_thread_agv2 = std::thread(&Environment::updateAvailablebinPosesAGV2, this);
+
+	//		available_bin_thread_agv1.join();
+}
+
+void Environment::singleUpdateforAvailableBinPoses() {
+	std::map<std::string,geometry_msgs::Pose>available_cam_pose = available_cam_pose_map;
+	for(auto cam_it = available_cam_pose.begin(); cam_it != available_cam_pose.end();++cam_it) {
+//		ROS_INFO_STREAM("Updating Available Bin Poses");
+		availablebinposes_.addToAvailableBinPoses(cam_it->first, cam_it->second);
+	}
+}
+
+void Environment::updateAvailableBinPoses() {
+	while(ros::ok()) {
+		ensureAllPartsinAllBinsareUpdated();
+		availablebinposes_.takesCareofAllCamera();
+		singleUpdateforAvailableBinPoses();
+
+	}
+
+	ros::Duration(1.5).sleep();
+}
+
+
+
 
 Environment::~Environment(){};
 
@@ -49,7 +82,7 @@ void  Environment::ensureAllPartsinBothTraysareUpdated() {
 	{
 		ros::Duration(0.1).sleep();
 	}
-//	setTrayCameraRequired(false);
+	//	setTrayCameraRequired(false);
 }
 void  Environment::ensureAllPartsinAllBinsareUpdated() {
 	setBinCameraRequired(true);
@@ -58,7 +91,7 @@ void  Environment::ensureAllPartsinAllBinsareUpdated() {
 	{
 		ros::Duration(0.1).sleep();
 	}
-//	setBinCameraRequired(false);
+	//	setBinCameraRequired(false);
 }
 
 std::map<std::string, std::map<std::string, std::vector<geometry_msgs::Pose>>>* Environment::getAllTrayParts() {
@@ -305,8 +338,8 @@ std::array<std::map<std::string, int>, 2> Environment::getCountOfavailablePartsA
 		}
 	}
 
-//	setTrayCameraRequired(false);
-//	setBinCameraRequired(false);
+	//	setTrayCameraRequired(false);
+	//	setBinCameraRequired(false);
 
 	std::array<std::map<std::string, int>, 2> retArray{ parttype_count_agv1, parttype_count_agv2 };
 	return retArray;
@@ -365,3 +398,25 @@ PriorityQueue* Environment::getPreOrderForArm2() {
 PriorityQueue* Environment::getPreOrderForArm1() {
 	return &pre_order_arm1;
 }
+
+
+void Environment::clearBinFromArm1(std::string cam_name){
+	available_cam_pose_map.erase(cam_name);
+}
+
+void Environment::clearBinFromArm2(std::string cam_name){
+	available_cam_pose_map.erase(cam_name);
+}
+
+void Environment::addToAvailableBinPoses(std::string cam_name , geometry_msgs::Pose cam_pose, int size){
+	if(!available_cam_size.count(cam_name)){
+		available_cam_size[cam_name] = size;
+		available_cam_pose_map[cam_name] = cam_pose;
+	} else {
+		if(available_cam_size[cam_name] != size) {
+			available_cam_pose_map[cam_name] = cam_pose;
+		}
+	}
+}
+
+

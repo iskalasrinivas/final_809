@@ -261,18 +261,10 @@ void LogicalCameraSensor::binAndTrayLogicalCameraCallback(const osrf_gear::Logic
 		}
 		if (bincam_) {
 			if (image_msg->models.size() < 4) {
-				if (image_msg->pose.position.y >= 0) {  // get camera position with respect to world and check it
-
-					environment_->getAvailableBinPosesObject()->addToAvailableBinPosesArm1(cam_name, image_msg->pose);
-				} else if (image_msg->pose.position.y < 0) {
-					environment_->getAvailableBinPosesObject()->addToAvailableBinPosesArm2(cam_name, image_msg->pose);
-				}
+				environment_->addToAvailableBinPoses(cam_name, image_msg->pose, image_msg->models.size());
+				//
 			} else {
-				if (image_msg->pose.position.y >= 0) {
-					environment_->getAvailableBinPosesObject()->clearBinFromArm1(cam_name);
-				} else if (image_msg->pose.position.y < 0) {
-					environment_->getAvailableBinPosesObject()->clearBinFromArm2(cam_name);
-				}
+				environment_->clearBinFromArm1(cam_name);
 			}
 		}
 		//		ROS_INFO_STREAM("<<<<<Sequence of Tray & bin Camera Callback is finished !!>>>>>");

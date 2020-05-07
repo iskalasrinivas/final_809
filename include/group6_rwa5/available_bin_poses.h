@@ -55,12 +55,12 @@ class AvailableBinPoses {
     explicit AvailableBinPoses(std::map<std::string, std::map<std::string, std::vector<geometry_msgs::Pose>>> *);
     ~AvailableBinPoses();
 
-    void addToAvailableBinPosesArm1(std::string, geometry_msgs::Pose);        // add a pose to a camera in arm1 reach i.e. 3 bins
-    void addToAvailableBinPosesArm2(std::string, geometry_msgs::Pose);        // add a pose to a camera in arm2 reach i.e. 3 bins
+    void addToAvailableBinPoses(std::string, geometry_msgs::Pose);        // add a pose to a camera in arm1 reach i.e. 3 bins
+//    void addToAvailableBinPosesArm2(std::string, geometry_msgs::Pose);        // add a pose to a camera in arm2 reach i.e. 3 bins
 
-    void clearBinFromArm1(std::string);
-    void clearBinFromArm2(std::string);
-
+//    void clearBinFromArm1(std::string);
+//    void clearBinFromArm2(std::string);
+    void takesCareofAllCamera();
     bool isInProximity(geometry_msgs::Pose , geometry_msgs::Pose );
 
     geometry_msgs::Pose getAvailableBinPoseArm1(); // returns a pose available in one of the 3bins for arm2
@@ -72,10 +72,12 @@ class AvailableBinPoses {
     Transformer transform_;
     std::map<std::string, std::map<std::string, std::vector<geometry_msgs::Pose>>>* all_bin_parts;
     std::vector<geometry_msgs::Pose> static_poses_;
-    std::map<std::string, std::vector<int>> available_ind_arm1_; // keep a track of the pose number
-    std::map<std::string, std::vector<int>> available_ind_arm2_; // keep a track of the pose number
-    std::map<std::string, std::vector<geometry_msgs::Pose>> available_poses_arm1_; // keep a track of the pose number
-    std::map<std::string, std::vector<geometry_msgs::Pose>> available_poses_arm2_; // keep a track of the pose number
+//    std::map<std::string, std::vector<int>> available_ind_arm1_; // keep a track of the pose number
+//    std::map<std::string, std::vector<int>> available_ind_arm2_; // keep a track of the pose number
+    std::vector<geometry_msgs::Pose> available_poses_arm1_; // keep a track of the pose number
+    std::vector<geometry_msgs::Pose> available_poses_arm2_; // keep a track of the pose number
+    std::vector<geometry_msgs::Pose> temp_poses_arm1_; // keep a track of the pose number
+    std::vector<geometry_msgs::Pose> temp_poses_arm2_;
 };
 
 #endif //GROUP6_RWA5_AVAILABLEBINPOSE_H

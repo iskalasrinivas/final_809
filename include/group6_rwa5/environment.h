@@ -13,10 +13,13 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <thread>
 
 class Environment
 {
 private:
+  std::thread available_bin_thread;
+//  std::thread available_bin_thread_agv2;
   std::map<std::string, std::set<OrderPart *>> unAvailablePartsForArm;  // agv_id
 
   std::map<std::string, std::map<std::string, geometry_msgs::Pose*>> pickuplocations;  // agv_id, part_type
@@ -42,6 +45,9 @@ private:
   std::map<std::string, bool> tray_cam_bool_map_;
   std::map<std::string, bool> quality_cam_bool_map_;
   std::map<std::string, bool> belt_cam_bool_map_;
+
+  std::map<std::string,geometry_msgs::Pose> available_cam_pose_map;
+  std::map<std::string, int> available_cam_size;
   std::vector<std::vector<OrderPart*>> shipment_vector_;
 
   bool all_binCamera_called;
@@ -55,10 +61,14 @@ private:
 
   bool conveyorTrigger;
 
+
 public:
   Environment();
   ~Environment();
 
+  void loopFunction();
+  void updateAvailableBinPoses();
+//  void updateAvailablebinPosesAGV2();
   void setAllBinParts();
   void sortAllBinParts();
   void setorderManagerStatus(bool);
@@ -139,6 +149,14 @@ public:
   void clearShipmentVector();
   PriorityQueue* getPreOrderForArm2();
   PriorityQueue* getPreOrderForArm1();
+
+  void clearBinFromArm1(std::string);
+  void clearBinFromArm2(std::string);
+
+  void addToAvailableBinPoses(std::string , geometry_msgs::Pose, int);
+
+  void singleUpdateforAvailableBinPoses();
+
 };
 
 #endif  // GROUP6_RWA4_ENVIRONMENT_H

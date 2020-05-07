@@ -25,6 +25,7 @@ private:
   std::map<std::string, std::map<std::string, geometry_msgs::Pose*>> pickuplocations;  // agv_id, part_type
   PriorityQueue pre_order_arm1;
   PriorityQueue pre_order_arm2;
+
   std::map<std::string, PriorityQueue*> pq;                                            //  string here is agv_id
   std::vector<std::vector <OrderPart*>> shipment_with_ANY_tag;
   AvailableBinPoses availablebinposes_;

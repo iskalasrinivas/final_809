@@ -55,6 +55,7 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <transformer.h>
 #include <robot_controller.h>
+#include <priority_queue.h>
 #include <executor.h>
 #include <thread>
 
@@ -117,6 +118,10 @@ public:
  void removeUnwantedPartfromTray(std::string, std::vector<std::vector<OrderPart*>>::iterator);
 
  void clearTray(RobotController*, std::string);
+
+ void checkBeforeDispatch(std::vector<std::vector<OrderPart*>>::iterator, std::string);
+
+ bool arePoseSame(geometry_msgs::Pose, geometry_msgs::Pose);
  // void flipPart(OrderPart * oPart);
 };
 

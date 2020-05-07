@@ -260,7 +260,7 @@ void OrderManager::comparewithTrayandUpdate(std::string agv_id,
 
 	auto pq1 = pq->at(agv_id);
 
-	vector<std::string> clear_map;
+	std::vector<std::string> clear_map;
 	for (auto pq1_it = pq1->getpq()->begin(); pq1_it != pq1->getpq()->end(); pq1_it++) {
 
 		if ((*pq1_it)->getShipmentId() == 0) {
@@ -271,10 +271,9 @@ void OrderManager::comparewithTrayandUpdate(std::string agv_id,
 						if(r_tray_parts.at((*pq1_it)->getPartType()).size() > 0) {
 							pq1->getpq()->erase(pq1_it--);
 							r_tray_parts.at((*pq1_it)->getPartType()).erase(part--);
-							break;
-						} else {
-							pq1->getpq()->erase(pq1_it--);
-							clear_map.push_back((*pq1_it)->getPartType());
+							if(r_tray_parts.at((*pq1_it)->getPartType()).size() == 0) {
+								clear_map.push_back((*pq1_it)->getPartType());
+							}
 							break;
 						}
 					}
@@ -324,7 +323,9 @@ void OrderManager::comparewithTrayandUpdate(std::string agv_id,
 					} else {
 						clear_map2.push_back(traypart_map.first);
 					}
+					break;
 				}
+
 			}
 		}
 	}

@@ -173,7 +173,7 @@ void RobotController::chooseArm() {
 		belt_joint_pose_ = { 0.7,-0.9, -0.05,0.2 , -1.65, -1.59, 0.0};
 		quality_cam_joint_position_ = { 0.8, 1.4, -0.7, 1.2, -2.2, -1.51, 0.0  };
 		flip_test_joint_position = {0.5, 0, -2.3, -2.1, -2.0, 0, 0.0};
-		other_side_joint_pose = {0.4, 3.98,-0.7, 0.5, -1.7, -1.59, 0.0};
+		other_side_joint_pose = {0.8, 3.98,-0.7, 0.5, -1.7, -1.59, 0.0};
 
 		trash_bin_joint_position_ = {1.18, 2.01, -1.38, 2.26, -2.3, -1.59, 0.0};
 		// home_joint_ff_arm = home_joint_fr_arm;

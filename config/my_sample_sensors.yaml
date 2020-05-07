@@ -47,7 +47,7 @@ sensors:
   logical_camera_10:
     type: logical_camera
     pose:
-      xyz: [1.3426, 4, 1.3288]
+      xyz: [1.3426, 4.7, 1.3288]
       rpy: [-1.5707, 1.4, -3.14]
   logical_camera_11:
     type: logical_camera

@@ -100,6 +100,7 @@ private:
 	std::vector<double> quality_cam_joint_position_;
 	std::vector<double> trash_bin_joint_position_;
 	std::vector<double> flip_test_joint_position;
+	std::vector<double> other_side_joint_pose;
 
 
 	std::vector<double> home_joint_fr_arm;
@@ -182,7 +183,7 @@ public:
 	void GoToTargetForFlip(const geometry_msgs::Pose &pose);
 	void dropPart(const geometry_msgs::Pose &);
 	void dropInAGV();
-
+	void GoToOtherSideliveryPose();
 	void GoToBeltHome();
 
 	// void deliverThePartinBin(OrderPart * oPart);

@@ -217,7 +217,7 @@ void DynamicPlanner::clearTray(RobotController* arm , std::string agv_id){
 		if (order_part->isTrashPart()) {
 			arm->dropInTrash();
 		} else {
-		arm->dropPart(order_part->getEndPose());
+			arm->dropPart(order_part->getEndPose());
 		}
 	}
 	ROS_INFO_STREAM("PreOrder Completed");
@@ -245,7 +245,7 @@ void DynamicPlanner::dynamicPlanningforArm1() {
 	int previousShipmentId = shipmnet_it->front()->getShipmentId();
 	while (!arm1_pq->empty()) {
 		//		ROS_INFO_STREAM("Arm1 : " << arm1_pq->top()->getPartType() <<" "<< arm1_pq->top()->getPriority() << ",  Priority Queue size : "<<arm1_pq->getpq()->size());
-//		ROS_INFO_STREAM("Pre-Order Processing");
+		//		ROS_INFO_STREAM("Pre-Order Processing");
 		if(env_->getPreOrderForArm1()->size() != 0) {
 			clearTray(arm1_, "agv1");
 		}
@@ -508,7 +508,7 @@ int DynamicPlanner::updatePickupLocation(std::string arm, OrderPart* part) {
 			// iterate and see if any bin part is reachable
 			for (auto pose_it = (*binParts)[part_type].begin(); pose_it != (*binParts)[part_type].end(); ++pose_it) {
 				// check if any part is reachable
-//								ROS_INFO_STREAM("I am here");
+				//								ROS_INFO_STREAM("I am here");
 				if (part->getAgvId() == "agv1" or (part->getAgvId() == "agv2" and part->hasToBePickedbyOtherHand())) {
 					if (pose_it->position.y >= -1.525*0) {
 						part->setCurrentPose(*pose_it);
@@ -517,8 +517,9 @@ int DynamicPlanner::updatePickupLocation(std::string arm, OrderPart* part) {
 						(*binParts)[part_type].erase(pose_it--);
 						return 0;
 					}
-				} else {
-					if (pose_it->position.y <= 1.525*0 or (part->getAgvId() == "agv1" and part->hasToBePickedbyOtherHand())) {
+				}
+				if (part->getAgvId() == "agv2" or (part->getAgvId() == "agv1" and part->hasToBePickedbyOtherHand())) {
+					if (pose_it->position.y <= 1.525*0 ) {
 						part->setCurrentPose(*pose_it);
 						//						ros::Duration(0.01).sleep();
 						//						ROS_INFO_STREAM("Pick Up Location" <<pose_it->position.x <<", "<<pose_it->position.y<<", "<<pose_it->position.z);
@@ -540,7 +541,8 @@ int DynamicPlanner::updatePickupLocation(std::string arm, OrderPart* part) {
 				if (arm == "arm1" and part->getAgvId() == "agv1") {
 					part_copy->setAgvId("agv1");
 					//					part_copy->setCurrentPose(current_pose);
-					ROS_INFO_STREAM("Setting End Pose for unavialble part for arm 1 ");
+					ROS_INFO_STREAM("Setting End Pose for unavailable part for arm 1 ");
+//					env_->ensureAllPartsinAllBinsareUpdated();
 					geometry_msgs::Pose end_pose = env_->getAvailableBinPosesObject()->getAvailableBinPoseArm1();
 					part_copy->setEndPose(end_pose);
 					part_copy->setShipmentId(part->getShipmentId());
@@ -553,14 +555,15 @@ int DynamicPlanner::updatePickupLocation(std::string arm, OrderPart* part) {
 					env_->getPriorityQueue()->at(part->getAgvId())->push(part);
 					env_->getPriorityQueue()->at("agv2")->push(part_copy);
 					//					(*(env_->getPriorityQueue()))[part->getAgvId()]->push(part);
-					(*(env_->getPriorityQueue()))["agv2"]->push(part_copy);
+//					(*(env_->getPriorityQueue()))["agv2"]->push(part_copy);
 					//					ROS_ERROR_STREAM("1Pushing 1 in agv1 :" << (*(env_->getPriorityQueue()))[part->getAgvId()]->size()
 					//							<<" and 1 in agv2 : " <<(*(env_->getPriorityQueue()))["agv2"]->size()
 					//							<<" for not reachable part for arm 1 "<< part->getPartType());
 				} else if (arm == "arm2" and part->getAgvId() == "agv2"){
 					part_copy->setAgvId("agv2");
 					//					part_copy->setCurrentPose(current_pose);
-					ROS_INFO_STREAM("Setting End Pose for unavialble part for arm 2 ");
+					ROS_INFO_STREAM("Setting End Pose for unavailable part for arm 2 ");
+//					env_->ensureAllPartsinAllBinsareUpdated();
 					geometry_msgs::Pose end_pose = env_->getAvailableBinPosesObject()->getAvailableBinPoseArm2();
 					part_copy->setEndPose(end_pose);
 					part_copy->setShipmentId(part->getShipmentId());
@@ -581,7 +584,7 @@ int DynamicPlanner::updatePickupLocation(std::string arm, OrderPart* part) {
 				part->addPriority(1);
 
 				ROS_ERROR_STREAM(arm <<" Part not available yet " << part->getPartType());
-//				part->addPriority(-4);
+				//				part->addPriority(-4);
 				(*(env_->getPriorityQueue()))[part->getAgvId()]->push(part);
 			}
 			// add them back to respective pqs
@@ -598,7 +601,7 @@ bool DynamicPlanner::completeSinglePartOrder(RobotController* arm, OrderPart *or
 	if(isSameAsPreviousShipment) {
 		bool flag = false;
 		if(!arm->isPartAttached()) {
-			//			arm->SendRobotHome();
+						arm->SendRobotHome();
 			auto curr_pose = order->getCurrentPose();
 
 			arm->pickPartFromBin(curr_pose);
@@ -641,12 +644,14 @@ bool DynamicPlanner::completeSinglePartOrder(RobotController* arm, OrderPart *or
 		} else {
 			flag = true;
 		}
-//		arm->SendRobotHome();
+		//		arm->SendRobotHome();
 		// logic to return bool upon failure or success
 		return flag;
 	} else {
 		if(order->hasToBePickedbyOtherHand()) {
+			arm->GoToOtherSideliveryPose();
 			arm->pickPartFromBin(order->getCurrentPose());
+
 			arm->dropPart(order->getEndPose());
 			return true;
 		} else {

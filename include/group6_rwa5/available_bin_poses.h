@@ -68,7 +68,7 @@ class AvailableBinPoses {
     // geometry_msgs::Pose getStaticBinPoseInWorld(std::string, geometry_msgs::Pose, geometry_msgs::Pose );
 
   private:
-
+    bool emptyplace_ensured;
     Transformer transform_;
     std::map<std::string, std::map<std::string, std::vector<geometry_msgs::Pose>>>* all_bin_parts;
     std::vector<geometry_msgs::Pose> static_poses_;

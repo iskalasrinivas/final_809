@@ -299,6 +299,8 @@ void DynamicPlanner::dynamicPlanningforArm1() {
 				ROS_INFO_STREAM("ARM1 : not Picked from belt Pushed to PQ1: " << arm1_pq->size() );
 				order_part->setLowestPriority();
 				arm1_pq->push(order_part);
+				std::map<std::string, geometry_msgs::Pose*>* armpickuplocation = &((*env_->getPickupLocations())["agv1"]);
+				armpickuplocation->erase(order_part->getPartType());
 				arm1_->SendRobotHome();
 				continue;
 			}
@@ -338,7 +340,7 @@ void DynamicPlanner::dynamicPlanningforArm1() {
 
 		if(isShipmentComplete("agv1", shipmnet_it)) {
 			ROS_INFO_STREAM(arm1_->getArmName() << " : Shipment completed");
-			checkBeforeDispatch(arm1_, current_shipment_it, "agv1");
+			checkBeforeDispatch(arm1_, shipmnet_it, "agv1");
 			arm1_->SendRobotHome();
 			ROS_INFO_STREAM("Send AGV");
 			while (current_shipment_it != shipmnet_it) {
@@ -426,6 +428,8 @@ void DynamicPlanner::dynamicPlanningforArm2() {
 				ROS_INFO_STREAM("ARM2 : not Picked from belt Pushed to PQ2: " << arm2_pq->size() );
 				order_part->setLowestPriority();
 				arm2_pq->push(order_part);
+				std::map<std::string, geometry_msgs::Pose*>* armpickuplocation = &((*env_->getPickupLocations())["agv2"]);
+				armpickuplocation->erase(order_part->getPartType());
 				arm2_->SendRobotHome();
 				continue;
 			}
@@ -464,7 +468,7 @@ void DynamicPlanner::dynamicPlanningforArm2() {
 		ROS_INFO_STREAM(arm2_->getArmName() << " : Shipment not completed !!");
 		if(isShipmentComplete("agv2", shipmnet_it)) {
 			ROS_INFO_STREAM(arm2_->getArmName() << " : Shipment completed !!");
-			checkBeforeDispatch(arm2_,current_shipment_it, "agv2");
+			checkBeforeDispatch(arm2_,shipmnet_it, "agv2");
 			arm2_->SendRobotHome();
 			while (current_shipment_it != shipmnet_it) {
 				ros::Duration(2.0).sleep();
@@ -492,9 +496,11 @@ void DynamicPlanner::checkBeforeDispatch(RobotController* arm_, std::vector<std:
 
 	if (agv_id == "agv1") {
 		tray_parts = *(env_->getTray1Parts());
-	} else if(agv_id == "agv2") {
+	}
+	if(agv_id == "agv2") {
 		tray_parts = *(env_->getTray2Parts());
 	}
+
 	for(auto map_it = tray_parts.begin(); map_it != tray_parts.end(); ++map_it) {
 		for(auto part = map_it->second.begin(); part != map_it->second.end(); ++part) {
 			ROS_INFO_STREAM(" Tray Part : "<< map_it->first<< " : " << (*part).position.x << " , "<<(*part).position.y);
@@ -513,8 +519,9 @@ void DynamicPlanner::checkBeforeDispatch(RobotController* arm_, std::vector<std:
 		if(tray_parts.count((*part_it)->getPartType())) {
 			auto part_type = (*part_it)->getPartType();
 			for (auto tray_part =  tray_parts.at(part_type).begin(); tray_part !=  tray_parts.at(part_type).end(); tray_part++) {
+				ROS_INFO_STREAM(" 0: 0");
 				if(arePoseSame(*tray_part, (*part_it)->getEndPose())) {
-					ROS_INFO_STREAM("0: 1");
+					ROS_INFO_STREAM(" 0: 1");
 					if(tray_parts.at(part_type).size() >= 1) {
 						ROS_INFO_STREAM("0: 2");
 						current_shipment.erase(part_it--);
@@ -564,43 +571,61 @@ void DynamicPlanner::checkBeforeDispatch(RobotController* arm_, std::vector<std:
 		ROS_INFO_STREAM(" Order Part : "<< (*part_it)->getPartType()<< " : " << (*part_it)->getEndPose().position.x << " , "<<(*part_it)->getEndPose().position.y);
 	}
 
+	std::map<std::string, std::vector<OrderPart*>>order_map;
 	for(auto part_it = current_shipment.begin(); part_it != current_shipment.end();++part_it) {
-		//		bool should_break = false;
-		ros::Duration(0.1).sleep();
-		ROS_INFO_STREAM("0");
+		order_map[(*part_it)->getPartType()].push_back((*part_it));
+	}
 
-		auto&  traypart_map = tray_parts.at((*part_it)->getPartType());
-		ROS_INFO_STREAM("Tray Parts : " <<(*part_it)->getPartType()<<" , "<<traypart_map.size());
-		if(traypart_map.size() > 0) {
-			ROS_INFO_STREAM("Displace Order Part : "<< (*part_it)->getPartType()<< " : " << (*part_it)->getEndPose().position.x << " , "<<(*part_it)->getEndPose().position.y);
-			geometry_msgs::Pose t_part = traypart_map.back();
+	for(auto part_type_it = order_map.begin(); part_type_it != order_map.end();++part_type_it) {
+		auto part_type = part_type_it->first;
+		auto tray_it = tray_parts.at(part_type).begin();
+		for(auto order_it = part_type_it->second.begin();
+				(order_it != part_type_it->second.end()) or ( tray_it !=  tray_parts.at(part_type).end());++tray_it,++order_it) {
+			(*order_it)->setCurrentPose(*tray_it);
+			(*order_it)->setPriority(-7);
+			delivery.push((*order_it));
 			ros::Duration(0.1).sleep();
-			ROS_INFO_STREAM("1");
-			(*part_it)->setPriority(-7);
-			(*part_it)->setCurrentPose(t_part);
-			delivery.push((*part_it));
-			current_shipment.erase(part_it--);
-			ros::Duration(0.1).sleep();
-			ROS_INFO_STREAM("2");
-			traypart_map.pop_back();
-			ros::Duration(0.1).sleep();
-			ROS_INFO_STREAM("3");
-			if(tray_parts.count((*part_it)->getPartType())) {
-				ROS_INFO_STREAM("4");
-				if(tray_parts.at((*part_it)->getPartType()).size() == 0) {
-					ROS_INFO_STREAM("5");
-					clear_map2.push_back((*part_it)->getPartType());
-					ROS_INFO_STREAM("5:1");
-					//				should_break = true;
-				}
-			}
 		}
 	}
-	ROS_INFO_STREAM("6");
-	ros::Duration(0.01).sleep();
-	for (auto&  it : clear_map2) {
-		tray_parts.erase(it);
-	}
+
+
+	//	for(auto part_it = current_shipment.begin(); part_it != current_shipment.end();++part_it) {
+	//		//		bool should_break = false;
+	//		ros::Duration(0.1).sleep();
+	//		ROS_INFO_STREAM("0");
+	//
+	//		auto traypart_map = tray_parts.at((*part_it)->getPartType());
+	//		ROS_INFO_STREAM("Tray Parts : " <<(*part_it)->getPartType()<<" , "<<traypart_map.size());
+	//		if(traypart_map.size() > 0) {
+	//			ROS_INFO_STREAM("Displace Order Part : "<< (*part_it)->getPartType()<< " : " << (*part_it)->getEndPose().position.x << " , "<<(*part_it)->getEndPose().position.y);
+	//			geometry_msgs::Pose t_part = traypart_map.back();
+	//			ros::Duration(0.1).sleep();
+	//			ROS_INFO_STREAM("1");
+	//			(*part_it)->setPriority(-7);
+	//			(*part_it)->setCurrentPose(t_part);
+	//			delivery.push((*part_it));
+	//			current_shipment.erase(part_it--);
+	//			ros::Duration(0.1).sleep();
+	//			ROS_INFO_STREAM("2");
+	//			traypart_map.pop_back();
+	//			ros::Duration(0.1).sleep();
+	//			ROS_INFO_STREAM("3");
+	//			if(tray_parts.count((*part_it)->getPartType())) {
+	//				ROS_INFO_STREAM("4");
+	//				if(tray_parts.at((*part_it)->getPartType()).size() == 0) {
+	//					ROS_INFO_STREAM("5");
+	//					clear_map2.push_back((*part_it)->getPartType());
+	//					ROS_INFO_STREAM("5:1");
+	//					//				should_break = true;
+	//				}
+	//			}
+	//		}
+	//	}
+//	ROS_INFO_STREAM("6");
+//	ros::Duration(0.01).sleep();
+//	for (auto&  it : clear_map2) {
+//		tray_parts.erase(it);
+//	}
 
 	delivery.printPq();
 
@@ -767,6 +792,7 @@ bool DynamicPlanner::completeSinglePartOrder(RobotController* arm, OrderPart *or
 		bool flag = false;
 		if(!arm->isPartAttached()) {
 			arm->SendRobotHome();
+			ROS_INFO_STREAM("Picking part ...");
 			auto curr_pose = order->getCurrentPose();
 
 			arm->pickPartFromBin(curr_pose);
@@ -813,7 +839,7 @@ bool DynamicPlanner::completeSinglePartOrder(RobotController* arm, OrderPart *or
 				ROS_INFO_STREAM("Part Not Found in Tray !!");
 			}
 		}
-		arm->dropPart(order->getEndPose());
+		arm->dropPartinAGV(order->getEndPose());
 
 		env_->setQualityCameraRequired(order->getAgvId(), true); // TODO implement inverse method of continuos input
 

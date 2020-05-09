@@ -382,7 +382,7 @@ void RobotController::GoToQualityCamera() {
 }
 
 void RobotController::pickPartFromAGV(const geometry_msgs::Pose &part_pose) {
-	pickPart(part_pose, 0.750, 0.2);
+	pickPart(part_pose, 0.750, 0.25);
 }
 
 void RobotController::pickPartFromBin(const geometry_msgs::Pose &part_pose) {
@@ -448,7 +448,24 @@ void RobotController::dropPart(const geometry_msgs::Pose &part_pose) {
 	ros::Duration(interval).sleep();
 
 	geometry_msgs::Pose target_top_pose_1 = part_pose;
-	target_top_pose_1.position.z += 0.3;
+	target_top_pose_1.position.z += 0.5;
+	GoToTarget(target_top_pose_1);
+	ros::Duration(interval).sleep();
+	geometry_msgs::Pose target_pose = part_pose;
+	target_pose.position.z += 0.1;
+	GoToTarget(target_pose);
+	GripperToggle(false);
+
+	GoToTarget(target_top_pose_1);
+	ros::Duration(interval).sleep();
+}
+
+void RobotController::dropPartinAGV(const geometry_msgs::Pose &part_pose) {
+	ROS_INFO_STREAM("Droping Part");
+	ros::Duration(interval).sleep();
+
+	geometry_msgs::Pose target_top_pose_1 = part_pose;
+	target_top_pose_1.position.z += 0.2;
 	GoToTarget(target_top_pose_1);
 	ros::Duration(interval).sleep();
 	geometry_msgs::Pose target_pose = part_pose;

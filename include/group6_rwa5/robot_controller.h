@@ -153,7 +153,7 @@ public:
 	void GoToTarget(const geometry_msgs::Pose&);
 	void GoToAGV(const geometry_msgs::Pose&);
 	void flipPart(OrderPart *order_);
-
+	void dropPartinAGV(const geometry_msgs::Pose &);
 	void GripperToggle(const bool &);
 	void GripperCallback(const osrf_gear::VacuumGripperState::ConstPtr&);
 	void GripperStateCheck(geometry_msgs::Pose);

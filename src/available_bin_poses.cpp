@@ -112,7 +112,7 @@ void AvailableBinPoses::takesCareofAllCamera() {
 	available_poses_arm2_ = temp_poses_arm2_;
 	temp_poses_arm1_.clear();
 	temp_poses_arm2_.clear();
-//	ROS_INFO_STREAM(" AB : " << available_poses_arm1_.size() <<", "<< available_poses_arm2_.size());
+	//	ROS_INFO_STREAM(" AB : " << available_poses_arm1_.size() <<", "<< available_poses_arm2_.size());
 }
 
 void AvailableBinPoses::addToAvailableBinPoses(std::string cam_name, geometry_msgs::Pose cam_pose) {
@@ -124,7 +124,7 @@ void AvailableBinPoses::addToAvailableBinPoses(std::string cam_name, geometry_ms
 		for (int i = 0; i < static_poses_.size(); ++i) {
 			// auto static_world_pose = getStaticBinPoseInWorld(cam_name, cam_pose, static_poses_.at(i));
 			geometry_msgs::Pose static_world_pose = transform_.getChildPose(cam_name, static_poses_.at(i));
-//			ROS_WARN_STREAM(cam_name <<" Empty "<<static_world_pose.position.x<<", " << static_world_pose.position.y);
+			//			ROS_WARN_STREAM(cam_name <<" Empty "<<static_world_pose.position.x<<", " << static_world_pose.position.y);
 			if(static_world_pose.position.y > 0.0) {
 				temp_poses_arm1_.push_back(static_world_pose);
 			}
@@ -134,32 +134,32 @@ void AvailableBinPoses::addToAvailableBinPoses(std::string cam_name, geometry_ms
 		}
 	}else {
 
-	for (int i = 0; i < static_poses_.size(); ++i) {
-		bool willcollide = false;
-		geometry_msgs::Pose static_world_pose = transform_.getChildPose(cam_name, static_poses_.at(i));
-//		ROS_WARN_STREAM(cam_name << " Not empty "<<static_world_pose.position.x <<" , "<< static_world_pose.position.y);
-		for (auto cam_elements_it = parts_in_bin.begin(); cam_elements_it != parts_in_bin.end(); ++cam_elements_it) {
-//			ROS_WARN_STREAM(" NE Size : " << cam_elements_it->first << ",  "<< cam_elements_it->second.size());
-			for (auto pose_it = cam_elements_it->second.begin(); pose_it != cam_elements_it->second.end(); ++pose_it) {
-				if (isInProximity(*pose_it, static_world_pose)) {
-					willcollide = true;
+		for (int i = 0; i < static_poses_.size(); ++i) {
+			bool willcollide = false;
+			geometry_msgs::Pose static_world_pose = transform_.getChildPose(cam_name, static_poses_.at(i));
+			//		ROS_WARN_STREAM(cam_name << " Not empty "<<static_world_pose.position.x <<" , "<< static_world_pose.position.y);
+			for (auto cam_elements_it = parts_in_bin.begin(); cam_elements_it != parts_in_bin.end(); ++cam_elements_it) {
+				//			ROS_WARN_STREAM(" NE Size : " << cam_elements_it->first << ",  "<< cam_elements_it->second.size());
+				for (auto pose_it = cam_elements_it->second.begin(); pose_it != cam_elements_it->second.end(); ++pose_it) {
+					if (isInProximity(*pose_it, static_world_pose)) {
+						willcollide = true;
+
+					}
 
 				}
+			}
+			if(!willcollide) {
+				if(static_world_pose.position.y > 0.0) {
+					temp_poses_arm1_.push_back(static_world_pose);
+				}
+				if(static_world_pose.position.y < 0.0) {
+					temp_poses_arm2_.push_back(static_world_pose);
+				}
+			}
 
-			}
 		}
-		if(!willcollide) {
-			if(static_world_pose.position.y > 0.0) {
-				temp_poses_arm2_.push_back(static_world_pose);
-			}
-			if(static_world_pose.position.y < 0.0) {
-				temp_poses_arm2_.push_back(static_world_pose);
-			}
-		}
-
 	}
-	}
-//	ROS_WARN_STREAM(cam_name<<" DebugAB : " << temp_poses_arm1_.size() <<", "<< temp_poses_arm2_.size());
+	//	ROS_WARN_STREAM(cam_name<<" DebugAB : " << temp_poses_arm1_.size() <<", "<< temp_poses_arm2_.size());
 }
 
 
@@ -171,7 +171,11 @@ geometry_msgs::Pose AvailableBinPoses::getAvailableBinPoseArm1(){
 	auto remove_it = available_poses_arm1_.begin();
 
 	for (auto pose_it = available_poses_arm1_.begin(); pose_it != available_poses_arm1_.end(); ++pose_it) {
-//		ROS_INFO_STREAM( "AP1: " << pose_it->position.x << ", " << pose_it->position.y);
+		if(pose_it->position.y < 0) {
+			available_poses_arm1_.erase(pose_it--);
+			continue;
+		}
+		//		ROS_INFO_STREAM( "AP1: " << pose_it->position.x << ", " << pose_it->position.y);
 		if(pose_.position.y >  pose_it->position.y) {
 			pose_ = *pose_it;
 			remove_it = pose_it;
@@ -183,13 +187,18 @@ geometry_msgs::Pose AvailableBinPoses::getAvailableBinPoseArm1(){
 }
 
 geometry_msgs::Pose AvailableBinPoses::getAvailableBinPoseArm2() {
-//	ROS_ERROR_STREAM("AP A2 : " <<available_poses_arm2_.size());
+	//	ROS_ERROR_STREAM("AP A2 : " <<available_poses_arm2_.size());
 	//	auto first_available_cam_it = available_poses_arm2_.begin(); //std::map<std::string, std::vector<geometry_msgs::Pose>>
 
 	geometry_msgs::Pose pose_ = available_poses_arm2_.front();
 	auto remove_it = available_poses_arm2_.begin();
+
 	for (auto pose_it = available_poses_arm2_.begin(); pose_it != available_poses_arm2_.end(); ++pose_it) {
-//		ROS_INFO_STREAM( "AP2: " << pose_it->position.x << ", " << pose_it->position.y);
+		//		ROS_INFO_STREAM( "AP2: " << pose_it->position.x << ", " << pose_it->position.y);
+		if(pose_it->position.y > 0) {
+			available_poses_arm1_.erase(pose_it--);
+			continue;
+		}
 		if(pose_.position.y <  pose_it->position.y) {
 			pose_ = *pose_it;
 			remove_it = pose_it;

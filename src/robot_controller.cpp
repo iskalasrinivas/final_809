@@ -119,11 +119,11 @@ void RobotController::initialSequence(){
 	face_right_orientation_.w = robot_tf_transform_.getRotation().w();
 
 	GoToJointState(flip_test_joint_position);
-		lookupTransform();
-	    face_test_orientation_.x = robot_tf_transform_.getRotation().x();
-		face_test_orientation_.y = robot_tf_transform_.getRotation().y();
-		face_test_orientation_.z = robot_tf_transform_.getRotation().z();
-		face_test_orientation_.w = robot_tf_transform_.getRotation().w();
+	lookupTransform();
+	face_test_orientation_.x = robot_tf_transform_.getRotation().x();
+	face_test_orientation_.y = robot_tf_transform_.getRotation().y();
+	face_test_orientation_.z = robot_tf_transform_.getRotation().z();
+	face_test_orientation_.w = robot_tf_transform_.getRotation().w();
 
 	SendRobotHome();
 	postInitialisation();
@@ -151,10 +151,10 @@ void RobotController::lookupTransform() {
 }
 
 bool RobotController::Planner() {
-//	ROS_INFO_STREAM("Planning started...");
+	//	ROS_INFO_STREAM("Planning started...");
 	if (robot_move_group_.plan(robot_planner_) == moveit::planning_interface::MoveItErrorCode::SUCCESS) {
 		plan_success_ = true;
-//		ROS_INFO_STREAM("Planner succeeded!");
+		//		ROS_INFO_STREAM("Planner succeeded!");
 	}
 	else {
 		plan_success_ = false;
@@ -194,7 +194,7 @@ void RobotController::chooseArm() {
 		thrash_pose.orientation.z = 0.0;
 		thrash_pose.orientation.w = 0.0;
 
-				agv_tf_listener_.waitForTransform("world", "kit_tray_1", ros::Time(0), ros::Duration(10));
+		agv_tf_listener_.waitForTransform("world", "kit_tray_1", ros::Time(0), ros::Duration(10));
 		agv_tf_listener_.lookupTransform("/world", "/kit_tray_1", ros::Time(0), agv_tf_transform_);
 
 		agv_position_.position.x = agv_tf_transform_.getOrigin().x();
@@ -204,10 +204,10 @@ void RobotController::chooseArm() {
 
 	} else if (arm_id_ == "arm2") {
 		home_joint_pose_ = {-0.9, -3.14, -2.0, 2.14, -1.7, -1.59, 0.0};
-//		home_joint_pose_ = {-0.9, -3.14, -0.80, 2.4, -3.14, -1.59, 0.0};
-//		home_joint_fl_arm = {	};
+		//		home_joint_pose_ = {-0.9, -3.14, -0.80, 2.4, -3.14, -1.59, 0.0};
+		//		home_joint_fl_arm = {	};
 		home_joint_fr_arm = {-0.9, -3.14, -2.0, 2.14, -1.7, 0, 0.0};
-//		quality_cam_joint_position_ = { -1.2, -1.68, -0.38, 1.01,-2.2, -1.51, 0.0  };
+		//		quality_cam_joint_position_ = { -1.2, -1.68, -0.38, 1.01,-2.2, -1.51, 0.0  };
 		quality_cam_joint_position_ = { -0.75, -1.68, -0.65, 1.01,-2.2, -1.51, 0.0 };
 		flip_test_joint_position = {-0.9, 0, -2.3, -2.1, -2.0, 0, 0.0};
 		other_side_joint_pose = {0.0, -3.914,-0.7, 0.5, -1.7, -1.59, 0.0};
@@ -215,7 +215,7 @@ void RobotController::chooseArm() {
 		trash_bin_joint_position_ = { -1.18, -2.76, -2.08, 2.71, -1.7, -1.51, 0.0 };
 		// home_joint_ff_arm = home_joint_fl_arm;
 
-//		belt_joint_pose_ = {-0.6, 0, -0.7, 1.65, -2.5, -1.59, 0.0 };
+		//		belt_joint_pose_ = {-0.6, 0, -0.7, 1.65, -2.5, -1.59, 0.0 };
 		belt_joint_pose_ = { 0.4,-0.9, -0.05,0.2 , -1.65, -1.59, 0.0 };
 		static_bin_pose.position.x = -0.04;
 		static_bin_pose.position.y = -1.07;
@@ -295,11 +295,11 @@ void RobotController::GoToTarget(const geometry_msgs::Pose &pose) {
 	ros::Duration(interval).sleep();
 	if (this->Planner()) {
 		ros::Duration(interval).sleep();
-//		ROS_INFO_STREAM("Point success");
+		//		ROS_INFO_STREAM("Point success");
 		robot_move_group_.move();
 		ros::Duration(interval).sleep();
 	}
-//	ROS_INFO_STREAM("Point reached...");
+	//	ROS_INFO_STREAM("Point reached...");
 }
 
 void RobotController::GripperToggle(const bool &state) {
@@ -395,11 +395,11 @@ void RobotController::pickPart(const geometry_msgs::Pose &part_pose, double bin_
 		bin_x_dis = 0.1;
 	}
 	if(part_pose.position.x < -0.45 ) {
-			bin_x_dis = 0.17;
-		}
+		bin_x_dis = 0.17;
+	}
 	if(part_pose.position.x > -0.20 ) {
-			bin_x_dis = -0.1;
-		}
+		bin_x_dis = -0.1;
+	}
 	double object_thickness = std::fabs(part_pose.position.z - bin_height); //half odf the object thickness
 
 	geometry_msgs::Pose inter_pose = part_pose;
@@ -427,7 +427,7 @@ void RobotController::pickPart(const geometry_msgs::Pose &part_pose, double bin_
 			arrival_pose.position.z = bin_height;
 		}
 		GoToTarget(arrival_pose);
-//		ros::Duration(interval).sleep();
+		//		ros::Duration(interval).sleep();
 	}
 	ROS_INFO_STREAM("Part attached");
 	arrival_pose.position.z = part_pose.position.z + 1.1 * object_thickness + 0.05;
@@ -440,7 +440,7 @@ void RobotController::pickPart(const geometry_msgs::Pose &part_pose, double bin_
 	GoToTarget(inter_pose);
 	ros::Duration(interval).sleep();
 	// GoToBinStaticPosition();
-//	ROS_INFO_STREAM("Coming back To BinStaticPosition");
+	//	ROS_INFO_STREAM("Coming back To BinStaticPosition");
 }
 
 void RobotController::dropPart(const geometry_msgs::Pose &part_pose) {
@@ -524,13 +524,13 @@ void RobotController::flipPart(OrderPart *order_)
 		flip_intermediate_pose_.orientation = face_test_orientation_;
 
 		for(auto x = 0.0; x < 0.2; x += 0.1){
-		 flip_intermediate_pose_.position.y += 0.1;
-	     flip_intermediate_pose_.position.z -= 0.2;
-		 GoToTargetForFlip(flip_intermediate_pose_);
-		 ROS_INFO_STREAM("inside for loop: " << x);
-	    }
+			flip_intermediate_pose_.position.y += 0.1;
+			flip_intermediate_pose_.position.z -= 0.2;
+			GoToTargetForFlip(flip_intermediate_pose_);
+			ROS_INFO_STREAM("inside for loop: " << x);
+		}
 
-        ROS_INFO_STREAM("outside for loop! ");
+		ROS_INFO_STREAM("outside for loop! ");
 		flip_intermediate_pose_.position.y += 0.005;
 		GoToTargetForFlip(flip_intermediate_pose_);
 		ros::Duration(0.1).sleep();
@@ -641,12 +641,12 @@ bool RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
 	////		ROS_WARN_STREAM("Waiting for part come under belt camera for pickup...");
 	//	}
 
-//	ROS_INFO_STREAM("RC ACTION =>" << *part_pose);
+	//	ROS_INFO_STREAM("RC ACTION =>" << *part_pose);
 	// TODO passing current pose as making a local copy of the part pose
 	GripperToggle(true);
 	double belt_speed = 0.3; // Trial error
 	double belt_height = 0.90;
-	double object_thickness = std::fabs(part_pose->position.z - belt_height)+0.025; //half odf the object thickness
+	double object_thickness = std::fabs(part_pose->position.z - belt_height)+0.015; //half odf the object thickness
 	geometry_msgs::Pose arrival_pose = *part_pose;
 	arrival_pose.position.z = part_pose->position.z + 1.1 * object_thickness;
 	arrival_pose.position.y -= 1.5*belt_speed;
@@ -658,10 +658,10 @@ bool RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
 	{
 		int count = 0;
 		picking_pose.position.z = part_pose->position.z + object_thickness;
-		picking_pose.position.y = part_pose->position.y - belt_speed;
+		picking_pose.position.y = part_pose->position.y - 1.5*belt_speed;
 		GoToTarget(picking_pose);
 		picking_pose.position.z = part_pose->position.z + 1.1 * object_thickness + 0.05;
-		picking_pose.position.y = part_pose->position.y-belt_speed;
+		picking_pose.position.y = part_pose->position.y- 1.5*belt_speed;
 		GoToTarget(picking_pose);
 		++count;
 		while (!isPartAttached() and count <= 2) {
@@ -676,9 +676,9 @@ bool RobotController::pickPartFromBelt(geometry_msgs::Pose* part_pose)
 		}
 	}
 	if (isPartAttached()) {
-	ROS_INFO_STREAM("Part attached");
-	picking_pose.position.z += 0.15;
-	GoToTarget(picking_pose);
-	return true;
+		ROS_INFO_STREAM("Part attached");
+		picking_pose.position.z += 0.15;
+		GoToTarget(picking_pose);
+		return true;
 	} else {return false;}
 }

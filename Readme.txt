@@ -1,3 +1,5 @@
+![Project Demo](https://github.com/iskalasrinivas/final_809/blob/master/ezgif.com-video-to-gif.gif)
+
 # group6_rwa5
 
 (a) Build Instructions
@@ -25,5 +27,3 @@
  roslaunch ur10_moveit_config move_group.launch arm_namespace:=/ariac/arm1
  roslaunch ur10_moveit_config move_group.launch arm_namespace:=/ariac/arm2
  rosrun group6_rwa5 main_node
-
-![Project Demo](https://github.com/iskalasrinivas/final_809/blob/master/ezgif.com-video-to-gif.gif)
